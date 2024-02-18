@@ -1,6 +1,11 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'dart:io';
+import 'dart:html' as webfile;
+
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -16,8 +21,9 @@ class MyApp extends StatelessWidget {
       title: 'json_editor',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        scrollbarTheme: ScrollbarThemeData(
+        scrollbarTheme: const ScrollbarThemeData().copyWith(
           thumbVisibility: MaterialStateProperty.all<bool>(true),
+          thumbColor: MaterialStateProperty.all(Colors.blue.shade700),
         ),
         useMaterial3: true,
       ),
@@ -46,7 +52,9 @@ class _MyHomePageState extends State<MyHomePage> {
       const XTypeGroup(label: 'json-files', extensions: <String>['json']);
   List<XFile>? files;
   bool addingNew = false;
+  bool isEdited = false;
   bool searching = false;
+  bool darkMode = true;
   String searchStr = "---**";
 
   int? checkedIndex;
@@ -76,16 +84,42 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.blue.shade700,
-          title: const Text("THB jotason editor"),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Checkbox(
+                    value: darkMode,
+                    onChanged: (value) {
+                      setState(() {
+                        darkMode = !darkMode;
+                      });
+                    },
+                  ),
+                  const Text("darkmode"),
+                ],
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  const Text("THB jotason editor"),
+                  if (isEdited) const Text("  (*)"),
+                ],
+              ),
+              const Spacer(),
+            ],
+          ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
         floatingActionButton: Transform.translate(
-          offset: const Offset(0, -3),
+          offset: const Offset(0, 9),
           child: SizedBox(
             width: 600,
             child: _mainActions(),
           ),
         ),
+        backgroundColor: darkMode ? Colors.black87 : Colors.white,
         body: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -133,15 +167,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ],
                                   ),
                                 ),
-                                Container(color: Colors.red, width: 5),
+                                Container(width: 5),
                                 Expanded(
                                     child: Text('$filename1',
                                         textAlign: TextAlign.center)),
-                                Container(color: Colors.blue, width: 5),
+                                Container(width: 5),
                                 Expanded(
                                     child: Text('$filename2',
                                         textAlign: TextAlign.center)),
-                                Container(color: Colors.white, width: 5),
+                                Container(width: 5),
                                 Expanded(
                                     child: Text('$filename3',
                                         textAlign: TextAlign.center)),
@@ -185,7 +219,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 str3.toUpperCase().contains(
                                                     searchStr.toUpperCase()))
                                         ? Colors.red
-                                        : Colors.grey.shade200,
+                                        : darkMode
+                                            ? Colors.grey.shade500
+                                            : Colors.grey.shade400,
                                     height: 40,
                                     child: Row(
                                       children: [
@@ -199,7 +235,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ),
                                         ),
                                         Container(
-                                            color: Colors.white, width: 5),
+                                            color: darkMode
+                                                ? Colors.black
+                                                : Colors.white,
+                                            width: 5),
                                         Expanded(
                                             child: Text(
                                           str1,
@@ -207,7 +246,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                           overflow: TextOverflow.ellipsis,
                                         )),
                                         Container(
-                                            color: Colors.white, width: 5),
+                                            color: darkMode
+                                                ? Colors.black
+                                                : Colors.white,
+                                            width: 5),
                                         Expanded(
                                             child: Text(
                                           str2,
@@ -215,7 +257,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                           overflow: TextOverflow.ellipsis,
                                         )),
                                         Container(
-                                            color: Colors.white, width: 5),
+                                            color: darkMode
+                                                ? Colors.black
+                                                : Colors.white,
+                                            width: 5),
                                         Expanded(
                                             child: Text(
                                           str3,
@@ -257,6 +302,15 @@ class _MyHomePageState extends State<MyHomePage> {
               }
             : null,
         child: const Text('open'),
+      ),
+      const SizedBox(width: 10),
+      ElevatedButton(
+        onPressed: isEdited
+            ? () async {
+                saveData();
+              }
+            : null,
+        child: const Text('save', style: TextStyle(color: Colors.orange)),
       ),
       const SizedBox(width: 10),
       ElevatedButton(
@@ -333,6 +387,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _rowAddNewItem() {
+    tecV1.text = "";
+    tecV2.text = "";
+    tecV3.text = "";
+
     return Container(
       color: Colors.green.shade300,
       width: double.infinity,
@@ -577,8 +635,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
                         Future.delayed(const Duration(milliseconds: 500))
                             .then((value) {
-                          setState(() {});
-                          saveData();
+                          setState(() {
+                            isEdited = true;
+                          });
                         });
                       },
                     ),
@@ -598,20 +657,51 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> saveData() async {
-    //
     var tosave1 = const JsonEncoder.withIndent("    ").convert(json1);
-    File file1 = File("${files![0].path}.1.json");
-    await file1.writeAsString(tosave1);
-
-    //
     var tosave2 = const JsonEncoder.withIndent("    ").convert(json2);
-    File file2 = File("${files![1].path}.1.json");
-    await file2.writeAsString(tosave2);
-
-    //
     var tosave3 = const JsonEncoder.withIndent("    ").convert(json3);
-    File file3 = File("${files![2].path}.1.json");
-    await file3.writeAsString(tosave3);
+
+    if (kIsWeb) {
+      /* ONLY WEB */
+
+      //
+      var blob1 = webfile.Blob([tosave1], "text/plain", "native");
+      webfile.AnchorElement(
+        href: webfile.Url.createObjectUrlFromBlob(blob1).toString(),
+      )
+        ..setAttribute("download", "$filename1.1.json")
+        ..click();
+
+      //
+      var blob2 = webfile.Blob([tosave2], "text/plain", "native");
+      webfile.AnchorElement(
+        href: webfile.Url.createObjectUrlFromBlob(blob2).toString(),
+      )
+        ..setAttribute("download", "$filename2.1.json")
+        ..click();
+
+      //
+      var blob3 = webfile.Blob([tosave3], "text/plain", "native");
+      webfile.AnchorElement(
+        href: webfile.Url.createObjectUrlFromBlob(blob3).toString(),
+      )
+        ..setAttribute("download", "$filename3.1.json")
+        ..click();
+    } else {
+      /* OTHER PLATFORMS */
+
+      //
+      File file1 = File("${files![0].path}.1.json");
+      await file1.writeAsString(tosave1);
+
+      //
+      File file2 = File("${files![1].path}.1.json");
+      await file2.writeAsString(tosave2);
+
+      //
+      File file3 = File("${files![2].path}.1.json");
+      await file3.writeAsString(tosave3);
+    }
   }
 
   Future<void> loadData() async {

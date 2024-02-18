@@ -41,6 +41,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController tecKey = TextEditingController();
+  TextEditingController tecSubkey = TextEditingController();
   TextEditingController tecV1 = TextEditingController();
   TextEditingController tecV2 = TextEditingController();
   TextEditingController tecV3 = TextEditingController();
@@ -387,6 +388,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _rowAddNewItem() {
+    tecSubkey.text = "";
     tecV1.text = "";
     tecV2.text = "";
     tecV3.text = "";
@@ -395,100 +397,171 @@ class _MyHomePageState extends State<MyHomePage> {
       color: Colors.green.shade300,
       width: double.infinity,
       padding: const EdgeInsets.all(8),
-      height: 100,
+      height: 450,
       child: Row(
         children: [
-          const Text("key:"),
+          /* KEYS */
           SizedBox(
-            width: 100,
-            child: TextField(
-              maxLines: 1,
-              controller: tecKey,
-              // onChanged: (value) {
-              //   print("changed: $value");
-              //   if (!value.isEmpty) {
-              //     setState(() {});
-              //   }
-              // },
-              enabled: checkedIndex == null,
-              textAlign: TextAlign.center,
-              textAlignVertical: TextAlignVertical.center,
-              autocorrect: false,
-              style: TextStyle(
-                  fontStyle: checkedIndex != null ? FontStyle.italic : null,
-                  fontWeight: checkedIndex != null
-                      ? FontWeight.bold
-                      : FontWeight.normal),
+            height: 120,
+            width: 180,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const Text("mainkey:"),
+                    SizedBox(
+                      width: 100,
+                      height: 35,
+                      child: TextField(
+                        maxLines: 1,
+                        controller: tecKey,
+                        // onChanged: (value) {
+                        //   print("changed: $value");
+                        //   if (!value.isEmpty) {
+                        //     setState(() {});
+                        //   }
+                        // },
+                        enabled: checkedIndex == null,
+                        textAlign: TextAlign.center,
+                        textAlignVertical: TextAlignVertical.center,
+                        autocorrect: false,
+                        style: TextStyle(
+                            fontStyle:
+                                checkedIndex != null ? FontStyle.italic : null,
+                            fontWeight: checkedIndex != null
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Text("subkey:"),
+                    SizedBox(
+                      width: 100,
+                      height: 35,
+                      child: TextField(
+                        maxLines: 1,
+                        controller: tecSubkey,
+                        // onChanged: (value) {
+                        //   print("changed: $value");
+                        //   if (!value.isEmpty) {
+                        //     setState(() {});
+                        //   }
+                        // },
+
+                        textAlign: TextAlign.center,
+                        textAlignVertical: TextAlignVertical.center,
+                        autocorrect: false,
+                        style: TextStyle(
+                            fontStyle:
+                                checkedIndex != null ? FontStyle.italic : null,
+                            fontWeight: checkedIndex != null
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 20),
-          const Text("values:"),
-          Row(
-            children: [
-              SizedBox(
-                width: 100,
-                height: double.infinity,
-                child: TextField(
-                  decoration: InputDecoration.collapsed(
-                    border: const OutlineInputBorder(
-                      borderSide: BorderSide(width: 1),
+
+          /* VALUES */
+          const SizedBox(width: 100, child: Text("values:")),
+          SizedBox(
+            width: 300,
+            height: 450,
+            child: Column(
+              children: [
+                SizedBox(
+                  width: 300,
+                  height: 100,
+                  child: TextField(
+                    decoration: InputDecoration.collapsed(
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide(width: 1),
+                      ),
+                      hintText: filename1,
+                      hintStyle: const TextStyle(fontSize: 12),
+                    ).copyWith(
+                      contentPadding: const EdgeInsets.all(5),
                     ),
-                    hintText: filename1,
-                    hintStyle: const TextStyle(fontSize: 12),
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.all(5),
+                    maxLines: 10,
+                    controller: tecV1,
                   ),
-                  maxLines: 10,
-                  controller: tecV1,
                 ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 100,
-                height: double.infinity,
-                child: TextField(
-                  decoration: InputDecoration.collapsed(
-                    border: const OutlineInputBorder(
-                        borderSide: BorderSide(width: 1)),
-                    hintText: filename2,
-                    hintStyle: const TextStyle(fontSize: 12),
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.all(5),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: 300,
+                  height: 100,
+                  child: TextField(
+                    decoration: InputDecoration.collapsed(
+                      border: const OutlineInputBorder(
+                          borderSide: BorderSide(width: 1)),
+                      hintText: filename2,
+                      hintStyle: const TextStyle(fontSize: 12),
+                    ).copyWith(
+                      contentPadding: const EdgeInsets.all(5),
+                    ),
+                    maxLines: 10,
+                    controller: tecV2,
                   ),
-                  maxLines: 10,
-                  controller: tecV2,
                 ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 100,
-                height: double.infinity,
-                child: TextField(
-                  decoration: InputDecoration.collapsed(
-                    border: const OutlineInputBorder(
-                        borderSide: BorderSide(width: 1)),
-                    hintText: filename3,
-                    hintStyle: const TextStyle(fontSize: 12),
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.all(5),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: 300,
+                  height: 100,
+                  child: TextField(
+                    decoration: InputDecoration.collapsed(
+                      border: const OutlineInputBorder(
+                          borderSide: BorderSide(width: 1)),
+                      hintText: filename3,
+                      hintStyle: const TextStyle(fontSize: 12),
+                    ).copyWith(
+                      contentPadding: const EdgeInsets.all(5),
+                    ),
+                    maxLines: 10,
+                    controller: tecV3,
                   ),
-                  maxLines: 10,
-                  controller: tecV3,
                 ),
-              ),
-              const SizedBox(width: 50),
-              SizedBox(
-                width: 100,
-                child: ElevatedButton(
-                  onPressed: checkedIndex != null || tecKey.text != ""
-                      ? () async {
-                          print("TODO insert in the checked group");
-                        }
-                      : null,
-                  child: const Text('Add'),
-                ),
-              ),
-            ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 50),
+
+          /* ADD BUTTON */
+          SizedBox(
+            width: 100,
+            child: ElevatedButton(
+              onPressed: () async {
+                setState(() {
+                  if (tecKey.text != "" && tecSubkey.text != "") {
+                    if (checkedIndex != null) {
+                      var subkey = tecSubkey.text;
+                      checkedIndex = null;
+                      childs1![subkey] = tecV1.text;
+                      childs2![subkey] = tecV2.text;
+                      childs3![subkey] = tecV3.text;
+                      addingNew = false;
+                      isEdited = true;
+                    } else {
+                      json1![tecKey.text] = {tecSubkey.text: tecV1.text};
+                      json2![tecKey.text] = {tecSubkey.text: tecV2.text};
+                      json3![tecKey.text] = {tecSubkey.text: tecV3.text};
+                      addingNew = false;
+                      isEdited = true;
+                    }
+                  } else {
+                    print("TODO: show msg fill all data!");
+                  }
+                });
+              },
+              child: const Text('Add'),
+            ),
           ),
         ],
       ),

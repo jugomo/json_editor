@@ -1,12 +1,9 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
-import 'dart:io';
-import 'dart:html' as webfile;
-
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:json_editor/save/save.dart';
 
 void main() {
   runApp(const MyApp());
@@ -308,7 +305,18 @@ class _MyHomePageState extends State<MyHomePage> {
       ElevatedButton(
         onPressed: isEdited
             ? () async {
-                saveData();
+                saveData(
+                  json1: json1!,
+                  json2: json2!,
+                  json3: json3!,
+                  file1: files![0],
+                  file2: files![1],
+                  file3: files![2],
+                ).then((value) {
+                  setState(() {
+                    isEdited = false;
+                  });
+                });
               }
             : null,
         child: const Text('save', style: TextStyle(color: Colors.orange)),
@@ -329,6 +337,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: files != null
             ? () async {
                 setState(() {
+                  isEdited = false;
                   files = null;
                   checkedIndex = null;
                   filename1 = null;
@@ -727,54 +736,6 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
-  }
-
-  Future<void> saveData() async {
-    var tosave1 = const JsonEncoder.withIndent("    ").convert(json1);
-    var tosave2 = const JsonEncoder.withIndent("    ").convert(json2);
-    var tosave3 = const JsonEncoder.withIndent("    ").convert(json3);
-
-    if (kIsWeb) {
-      /* ONLY WEB */
-
-      //
-      var blob1 = webfile.Blob([tosave1], "text/plain", "native");
-      webfile.AnchorElement(
-        href: webfile.Url.createObjectUrlFromBlob(blob1).toString(),
-      )
-        ..setAttribute("download", "$filename1.1.json")
-        ..click();
-
-      //
-      var blob2 = webfile.Blob([tosave2], "text/plain", "native");
-      webfile.AnchorElement(
-        href: webfile.Url.createObjectUrlFromBlob(blob2).toString(),
-      )
-        ..setAttribute("download", "$filename2.1.json")
-        ..click();
-
-      //
-      var blob3 = webfile.Blob([tosave3], "text/plain", "native");
-      webfile.AnchorElement(
-        href: webfile.Url.createObjectUrlFromBlob(blob3).toString(),
-      )
-        ..setAttribute("download", "$filename3.1.json")
-        ..click();
-    } else {
-      /* OTHER PLATFORMS */
-
-      //
-      File file1 = File("${files![0].path}.1.json");
-      await file1.writeAsString(tosave1);
-
-      //
-      File file2 = File("${files![1].path}.1.json");
-      await file2.writeAsString(tosave2);
-
-      //
-      File file3 = File("${files![2].path}.1.json");
-      await file3.writeAsString(tosave3);
-    }
   }
 
   Future<void> loadData() async {

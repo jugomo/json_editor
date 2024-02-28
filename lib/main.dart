@@ -1,7 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
-import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:json_editor/save/save.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,8 +18,9 @@ class MyApp extends StatelessWidget {
       title: 'json_editor',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        scrollbarTheme: ScrollbarThemeData(
+        scrollbarTheme: const ScrollbarThemeData().copyWith(
           thumbVisibility: MaterialStateProperty.all<bool>(true),
+          thumbColor: MaterialStateProperty.all(Colors.blue.shade700),
         ),
         useMaterial3: true,
       ),
@@ -35,6 +38,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController tecKey = TextEditingController();
+  TextEditingController tecSubkey = TextEditingController();
   TextEditingController tecV1 = TextEditingController();
   TextEditingController tecV2 = TextEditingController();
   TextEditingController tecV3 = TextEditingController();
@@ -46,7 +50,9 @@ class _MyHomePageState extends State<MyHomePage> {
       const XTypeGroup(label: 'json-files', extensions: <String>['json']);
   List<XFile>? files;
   bool addingNew = false;
+  bool isEdited = false;
   bool searching = false;
+  bool darkMode = true;
   String searchStr = "---**";
 
   int? checkedIndex;
@@ -76,16 +82,42 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.blue.shade700,
-          title: const Text("THB jotason editor"),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Checkbox(
+                    value: darkMode,
+                    onChanged: (value) {
+                      setState(() {
+                        darkMode = !darkMode;
+                      });
+                    },
+                  ),
+                  const Text("darkmode"),
+                ],
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  const Text("THB jotason editor"),
+                  if (isEdited) const Text("  (*)"),
+                ],
+              ),
+              const Spacer(),
+            ],
+          ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
         floatingActionButton: Transform.translate(
-          offset: const Offset(0, -3),
+          offset: const Offset(0, 9),
           child: SizedBox(
             width: 600,
             child: _mainActions(),
           ),
         ),
+        backgroundColor: darkMode ? Colors.black87 : Colors.white,
         body: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -133,15 +165,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ],
                                   ),
                                 ),
-                                Container(color: Colors.red, width: 5),
+                                Container(width: 5),
                                 Expanded(
                                     child: Text('$filename1',
                                         textAlign: TextAlign.center)),
-                                Container(color: Colors.blue, width: 5),
+                                Container(width: 5),
                                 Expanded(
                                     child: Text('$filename2',
                                         textAlign: TextAlign.center)),
-                                Container(color: Colors.white, width: 5),
+                                Container(width: 5),
                                 Expanded(
                                     child: Text('$filename3',
                                         textAlign: TextAlign.center)),
@@ -185,7 +217,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 str3.toUpperCase().contains(
                                                     searchStr.toUpperCase()))
                                         ? Colors.red
-                                        : Colors.grey.shade200,
+                                        : darkMode
+                                            ? Colors.grey.shade500
+                                            : Colors.grey.shade400,
                                     height: 40,
                                     child: Row(
                                       children: [
@@ -199,7 +233,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ),
                                         ),
                                         Container(
-                                            color: Colors.white, width: 5),
+                                            color: darkMode
+                                                ? Colors.black
+                                                : Colors.white,
+                                            width: 5),
                                         Expanded(
                                             child: Text(
                                           str1,
@@ -207,7 +244,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                           overflow: TextOverflow.ellipsis,
                                         )),
                                         Container(
-                                            color: Colors.white, width: 5),
+                                            color: darkMode
+                                                ? Colors.black
+                                                : Colors.white,
+                                            width: 5),
                                         Expanded(
                                             child: Text(
                                           str2,
@@ -215,7 +255,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                           overflow: TextOverflow.ellipsis,
                                         )),
                                         Container(
-                                            color: Colors.white, width: 5),
+                                            color: darkMode
+                                                ? Colors.black
+                                                : Colors.white,
+                                            width: 5),
                                         Expanded(
                                             child: Text(
                                           str3,
@@ -260,6 +303,26 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       const SizedBox(width: 10),
       ElevatedButton(
+        onPressed: isEdited
+            ? () async {
+                saveData(
+                  json1: json1!,
+                  json2: json2!,
+                  json3: json3!,
+                  file1: files![0],
+                  file2: files![1],
+                  file3: files![2],
+                ).then((value) {
+                  setState(() {
+                    isEdited = false;
+                  });
+                });
+              }
+            : null,
+        child: const Text('save', style: TextStyle(color: Colors.orange)),
+      ),
+      const SizedBox(width: 10),
+      ElevatedButton(
         onPressed: files != null
             ? () async {
                 setState(() {
@@ -274,6 +337,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: files != null
             ? () async {
                 setState(() {
+                  isEdited = false;
                   files = null;
                   checkedIndex = null;
                   filename1 = null;
@@ -333,104 +397,180 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _rowAddNewItem() {
+    tecSubkey.text = "";
+    tecV1.text = "";
+    tecV2.text = "";
+    tecV3.text = "";
+
     return Container(
       color: Colors.green.shade300,
       width: double.infinity,
       padding: const EdgeInsets.all(8),
-      height: 100,
+      height: 450,
       child: Row(
         children: [
-          const Text("key:"),
+          /* KEYS */
           SizedBox(
-            width: 100,
-            child: TextField(
-              maxLines: 1,
-              controller: tecKey,
-              // onChanged: (value) {
-              //   print("changed: $value");
-              //   if (!value.isEmpty) {
-              //     setState(() {});
-              //   }
-              // },
-              enabled: checkedIndex == null,
-              textAlign: TextAlign.center,
-              textAlignVertical: TextAlignVertical.center,
-              autocorrect: false,
-              style: TextStyle(
-                  fontStyle: checkedIndex != null ? FontStyle.italic : null,
-                  fontWeight: checkedIndex != null
-                      ? FontWeight.bold
-                      : FontWeight.normal),
+            height: 120,
+            width: 180,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const Text("mainkey:"),
+                    SizedBox(
+                      width: 100,
+                      height: 35,
+                      child: TextField(
+                        maxLines: 1,
+                        controller: tecKey,
+                        // onChanged: (value) {
+                        //   print("changed: $value");
+                        //   if (!value.isEmpty) {
+                        //     setState(() {});
+                        //   }
+                        // },
+                        enabled: checkedIndex == null,
+                        textAlign: TextAlign.center,
+                        textAlignVertical: TextAlignVertical.center,
+                        autocorrect: false,
+                        style: TextStyle(
+                            fontStyle:
+                                checkedIndex != null ? FontStyle.italic : null,
+                            fontWeight: checkedIndex != null
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Text("subkey:"),
+                    SizedBox(
+                      width: 100,
+                      height: 35,
+                      child: TextField(
+                        maxLines: 1,
+                        controller: tecSubkey,
+                        // onChanged: (value) {
+                        //   print("changed: $value");
+                        //   if (!value.isEmpty) {
+                        //     setState(() {});
+                        //   }
+                        // },
+
+                        textAlign: TextAlign.center,
+                        textAlignVertical: TextAlignVertical.center,
+                        autocorrect: false,
+                        style: TextStyle(
+                            fontStyle:
+                                checkedIndex != null ? FontStyle.italic : null,
+                            fontWeight: checkedIndex != null
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 20),
-          const Text("values:"),
-          Row(
-            children: [
-              SizedBox(
-                width: 100,
-                height: double.infinity,
-                child: TextField(
-                  decoration: InputDecoration.collapsed(
-                    border: const OutlineInputBorder(
-                      borderSide: BorderSide(width: 1),
+
+          /* VALUES */
+          const SizedBox(width: 100, child: Text("values:")),
+          SizedBox(
+            width: 300,
+            height: 450,
+            child: Column(
+              children: [
+                SizedBox(
+                  width: 300,
+                  height: 100,
+                  child: TextField(
+                    decoration: InputDecoration.collapsed(
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide(width: 1),
+                      ),
+                      hintText: filename1,
+                      hintStyle: const TextStyle(fontSize: 12),
+                    ).copyWith(
+                      contentPadding: const EdgeInsets.all(5),
                     ),
-                    hintText: filename1,
-                    hintStyle: const TextStyle(fontSize: 12),
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.all(5),
+                    maxLines: 10,
+                    controller: tecV1,
                   ),
-                  maxLines: 10,
-                  controller: tecV1,
                 ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 100,
-                height: double.infinity,
-                child: TextField(
-                  decoration: InputDecoration.collapsed(
-                    border: const OutlineInputBorder(
-                        borderSide: BorderSide(width: 1)),
-                    hintText: filename2,
-                    hintStyle: const TextStyle(fontSize: 12),
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.all(5),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: 300,
+                  height: 100,
+                  child: TextField(
+                    decoration: InputDecoration.collapsed(
+                      border: const OutlineInputBorder(
+                          borderSide: BorderSide(width: 1)),
+                      hintText: filename2,
+                      hintStyle: const TextStyle(fontSize: 12),
+                    ).copyWith(
+                      contentPadding: const EdgeInsets.all(5),
+                    ),
+                    maxLines: 10,
+                    controller: tecV2,
                   ),
-                  maxLines: 10,
-                  controller: tecV2,
                 ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 100,
-                height: double.infinity,
-                child: TextField(
-                  decoration: InputDecoration.collapsed(
-                    border: const OutlineInputBorder(
-                        borderSide: BorderSide(width: 1)),
-                    hintText: filename3,
-                    hintStyle: const TextStyle(fontSize: 12),
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.all(5),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: 300,
+                  height: 100,
+                  child: TextField(
+                    decoration: InputDecoration.collapsed(
+                      border: const OutlineInputBorder(
+                          borderSide: BorderSide(width: 1)),
+                      hintText: filename3,
+                      hintStyle: const TextStyle(fontSize: 12),
+                    ).copyWith(
+                      contentPadding: const EdgeInsets.all(5),
+                    ),
+                    maxLines: 10,
+                    controller: tecV3,
                   ),
-                  maxLines: 10,
-                  controller: tecV3,
                 ),
-              ),
-              const SizedBox(width: 50),
-              SizedBox(
-                width: 100,
-                child: ElevatedButton(
-                  onPressed: checkedIndex != null || tecKey.text != ""
-                      ? () async {
-                          print("TODO insert in the checked group");
-                        }
-                      : null,
-                  child: const Text('Add'),
-                ),
-              ),
-            ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 50),
+
+          /* ADD BUTTON */
+          SizedBox(
+            width: 100,
+            child: ElevatedButton(
+              onPressed: () async {
+                setState(() {
+                  if (tecKey.text != "" && tecSubkey.text != "") {
+                    if (checkedIndex != null) {
+                      var subkey = tecSubkey.text;
+                      checkedIndex = null;
+                      childs1![subkey] = tecV1.text;
+                      childs2![subkey] = tecV2.text;
+                      childs3![subkey] = tecV3.text;
+                      addingNew = false;
+                      isEdited = true;
+                    } else {
+                      json1![tecKey.text] = {tecSubkey.text: tecV1.text};
+                      json2![tecKey.text] = {tecSubkey.text: tecV2.text};
+                      json3![tecKey.text] = {tecSubkey.text: tecV3.text};
+                      addingNew = false;
+                      isEdited = true;
+                    }
+                  } else {
+                    print("TODO: show msg fill all data!");
+                  }
+                });
+              },
+              child: const Text('Add'),
+            ),
           ),
         ],
       ),
@@ -577,8 +717,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
                         Future.delayed(const Duration(milliseconds: 500))
                             .then((value) {
-                          setState(() {});
-                          saveData();
+                          setState(() {
+                            isEdited = true;
+                          });
                         });
                       },
                     ),
@@ -595,23 +736,6 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
-  }
-
-  Future<void> saveData() async {
-    //
-    var tosave1 = const JsonEncoder.withIndent("    ").convert(json1);
-    File file1 = File("${files![0].path}.1.json");
-    await file1.writeAsString(tosave1);
-
-    //
-    var tosave2 = const JsonEncoder.withIndent("    ").convert(json2);
-    File file2 = File("${files![1].path}.1.json");
-    await file2.writeAsString(tosave2);
-
-    //
-    var tosave3 = const JsonEncoder.withIndent("    ").convert(json3);
-    File file3 = File("${files![2].path}.1.json");
-    await file3.writeAsString(tosave3);
   }
 
   Future<void> loadData() async {

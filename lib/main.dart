@@ -85,18 +85,14 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Checkbox(
-                    value: darkMode,
-                    onChanged: (value) {
-                      setState(() {
-                        darkMode = !darkMode;
-                      });
-                    },
-                  ),
-                  const Text("darkmode"),
-                ],
+              MenuBar(
+                style: const MenuStyle(
+                    backgroundColor:
+                        MaterialStatePropertyAll<Color>(Colors.transparent),
+                    elevation: MaterialStatePropertyAll<double>(0),
+                    shape: MaterialStatePropertyAll<ContinuousRectangleBorder>(
+                        ContinuousRectangleBorder())),
+                children: [_mainActions()],
               ),
               const Spacer(),
               Row(
@@ -107,14 +103,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const Spacer(),
             ],
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
-        floatingActionButton: Transform.translate(
-          offset: const Offset(0, 9),
-          child: SizedBox(
-            width: 600,
-            child: _mainActions(),
           ),
         ),
         backgroundColor: darkMode ? Colors.black87 : Colors.white,
@@ -223,6 +211,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                     height: 40,
                                     child: Row(
                                       children: [
+                                        /* REMOVE ENTRY BUTTON */
+                                        IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              print("  deleting: $key");
+                                              json1?[mainKey]?.remove(key);
+                                              json2?[mainKey]?.remove(key);
+                                              json3?[mainKey]?.remove(key);
+                                            });
+                                          },
+                                          icon: const Icon(Icons.delete),
+                                        ),
+
+                                        /* STRING KEY */
                                         Expanded(
                                           child: Text(
                                             key,
@@ -288,6 +290,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _mainActions() {
     return Row(children: [
+      /* DARKMODE */
+      Row(
+        children: [
+          Checkbox(
+            value: darkMode,
+            onChanged: (value) {
+              setState(() {
+                darkMode = !darkMode;
+              });
+            },
+          ),
+          const Text("darkmode"),
+        ],
+      ),
+      const SizedBox(width: 10),
       ElevatedButton(
         onPressed: files == null
             ? () async {
@@ -403,7 +420,7 @@ class _MyHomePageState extends State<MyHomePage> {
     tecV3.text = "";
 
     return Container(
-      color: Colors.green.shade300,
+      color: Colors.grey.shade600.withOpacity(0.8),
       width: double.infinity,
       padding: const EdgeInsets.all(8),
       height: 450,
@@ -541,37 +558,55 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           const SizedBox(width: 50),
+          Column(
+            children: [
+              /* ADD BUTTON */
+              SizedBox(
+                width: 100,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      if (tecKey.text != "" && tecSubkey.text != "") {
+                        if (checkedIndex != null) {
+                          var subkey = tecSubkey.text;
+                          checkedIndex = null;
+                          childs1![subkey] = tecV1.text;
+                          childs2![subkey] = tecV2.text;
+                          childs3![subkey] = tecV3.text;
+                          addingNew = false;
+                          isEdited = true;
+                        } else {
+                          json1![tecKey.text] = {tecSubkey.text: tecV1.text};
+                          json2![tecKey.text] = {tecSubkey.text: tecV2.text};
+                          json3![tecKey.text] = {tecSubkey.text: tecV3.text};
+                          addingNew = false;
+                          isEdited = true;
+                        }
+                      } else {
+                        print("TODO: show msg fill all data!");
+                      }
+                    });
+                  },
+                  child: const Text('Add'),
+                ),
+              ),
+              const SizedBox(height: 50),
 
-          /* ADD BUTTON */
-          SizedBox(
-            width: 100,
-            child: ElevatedButton(
-              onPressed: () async {
-                setState(() {
-                  if (tecKey.text != "" && tecSubkey.text != "") {
-                    if (checkedIndex != null) {
-                      var subkey = tecSubkey.text;
+              /* CLOSE BUTTON */
+              SizedBox(
+                width: 100,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      addingNew = false;
                       checkedIndex = null;
-                      childs1![subkey] = tecV1.text;
-                      childs2![subkey] = tecV2.text;
-                      childs3![subkey] = tecV3.text;
-                      addingNew = false;
-                      isEdited = true;
-                    } else {
-                      json1![tecKey.text] = {tecSubkey.text: tecV1.text};
-                      json2![tecKey.text] = {tecSubkey.text: tecV2.text};
-                      json3![tecKey.text] = {tecSubkey.text: tecV3.text};
-                      addingNew = false;
-                      isEdited = true;
-                    }
-                  } else {
-                    print("TODO: show msg fill all data!");
-                  }
-                });
-              },
-              child: const Text('Add'),
-            ),
-          ),
+                    });
+                  },
+                  child: const Text('close'),
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );

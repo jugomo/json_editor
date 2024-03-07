@@ -100,189 +100,189 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         backgroundColor: darkMode ? Colors.black87 : Colors.white,
-        body: _listView()
-        //SizedBox.shrink()
-        );
+        body:
+            // _listView()
+            SizedBox.shrink());
   }
 
-  Widget _listView() {
-// TODO **************************************************************************************
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        /* CONTENT OF FILES */
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(8.0),
-            child: ListView.builder(
-              controller: scrollController,
-              itemCount: files?.length ?? 0,
-              itemBuilder: (context, index) {
-                var mainKey = jsonFiles![1].keys.elementAt(index);
-                for (int i = 0; i < files!.length; i++) {}
-                childs1 = jsonFiles![1][mainKey];
-                //childs2 = json2?[mainKey];
-                //childs3 = json3?[mainKey];
-                var childCount = childs1?.length ?? 0;
+//   Widget _listView() {
+// // TODO **************************************************************************************
+//     return Column(
+//       mainAxisSize: MainAxisSize.min,
+//       children: [
+//         /* CONTENT OF FILES */
+//         Expanded(
+//           child: Container(
+//             padding: const EdgeInsets.all(8.0),
+//             child: ListView.builder(
+//               controller: scrollController,
+//               itemCount: files?.length ?? 0,
+//               itemBuilder: (context, index) {
+//                 var mainKey = jsonFiles![1].keys.elementAt(index);
+//                 for (int i = 0; i < files!.length; i++) {}
+//                 //childs1 = jsonFiles![1][mainKey];
+//                 //childs2 = json2?[mainKey];
+//                 //childs3 = json3?[mainKey];
+//                 //var childCount = childs1?.length ?? 0;
 
-                return Container(
-                  padding: const EdgeInsets.only(bottom: 20, right: 20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      /* HEADER OF THE GROUP */
-                      Container(
-                        color: Colors.grey,
-                        padding: const EdgeInsets.all(3),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Checkbox(
-                                    value: checkedIndex == index,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        checkedIndex = (value!) ? index : null;
-                                        addingNew = value;
-                                      });
-                                    },
-                                  ),
-                                  Text('${index + 1}'),
-                                  const SizedBox(width: 20),
-                                  Text('$mainKey'),
-                                ],
-                              ),
-                            ),
-                            Container(width: 5),
-                            Expanded(
-                                child: Text('$filename1',
-                                    textAlign: TextAlign.center)),
-                            Container(width: 5),
-                            Expanded(
-                                child: Text('$filename2',
-                                    textAlign: TextAlign.center)),
-                            Container(width: 5),
-                            Expanded(
-                                child: Text('$filename3',
-                                    textAlign: TextAlign.center)),
-                          ],
-                        ),
-                      ),
+//                 return Container(
+//                   padding: const EdgeInsets.only(bottom: 20, right: 20),
+//                   child: Column(
+//                     mainAxisSize: MainAxisSize.min,
+//                     children: [
+//                       /* HEADER OF THE GROUP */
+//                       Container(
+//                         color: Colors.grey,
+//                         padding: const EdgeInsets.all(3),
+//                         child: Row(
+//                           children: [
+//                             Expanded(
+//                               child: Row(
+//                                 children: [
+//                                   Checkbox(
+//                                     value: checkedIndex == index,
+//                                     onChanged: (value) {
+//                                       setState(() {
+//                                         checkedIndex = (value!) ? index : null;
+//                                         addingNew = value;
+//                                       });
+//                                     },
+//                                   ),
+//                                   Text('${index + 1}'),
+//                                   const SizedBox(width: 20),
+//                                   Text('$mainKey'),
+//                                 ],
+//                               ),
+//                             ),
+//                             Container(width: 5),
+//                             Expanded(
+//                                 child: Text('$filename1',
+//                                     textAlign: TextAlign.center)),
+//                             Container(width: 5),
+//                             Expanded(
+//                                 child: Text('$filename2',
+//                                     textAlign: TextAlign.center)),
+//                             Container(width: 5),
+//                             Expanded(
+//                                 child: Text('$filename3',
+//                                     textAlign: TextAlign.center)),
+//                           ],
+//                         ),
+//                       ),
 
-                      /* CONTENT OF THE GROUP */
-                      SizedBox(
-                        height: childCount * 40 + childCount * 2.5 * 2,
-                        child: ListView.builder(
-                          itemCount: childCount,
-                          itemBuilder: (context, index) {
-                            String key = childs1!.keys.elementAt(index);
-                            var str1 = '-';
-                            var str2 = '-';
-                            var str3 = '-';
-                            try {
-                              str1 = childs1?[key];
-                              str2 = childs2?[key];
-                              str3 = childs3?[key];
-                            } catch (_) {}
+//                       /* CONTENT OF THE GROUP */
+//                       SizedBox(
+//                         height: childCount * 40 + childCount * 2.5 * 2,
+//                         child: ListView.builder(
+//                           itemCount: childCount,
+//                           itemBuilder: (context, index) {
+//                             String key = childs1!.keys.elementAt(index);
+//                             var str1 = '-';
+//                             var str2 = '-';
+//                             var str3 = '-';
+//                             try {
+//                               str1 = childs1?[key];
+//                               str2 = childs2?[key];
+//                               str3 = childs3?[key];
+//                             } catch (_) {}
 
-                            return InkWell(
-                              onTap: () {
-                                _editItem(
-                                    ctx: context,
-                                    mainkey: mainKey,
-                                    selectedkey: key);
-                              },
-                              child: Container(
-                                margin:
-                                    const EdgeInsets.symmetric(vertical: 2.5),
-                                color: searching &&
-                                        (key.toUpperCase().contains(
-                                                searchStr.toUpperCase()) ||
-                                            str1.toUpperCase().contains(
-                                                searchStr.toUpperCase()) ||
-                                            str2.toUpperCase().contains(
-                                                searchStr.toUpperCase()) ||
-                                            str3.toUpperCase().contains(
-                                                searchStr.toUpperCase()))
-                                    ? Colors.red
-                                    : darkMode
-                                        ? Colors.grey.shade500
-                                        : Colors.grey.shade400,
-                                height: 40,
-                                child: Row(
-                                  children: [
-                                    /* REMOVE ENTRY BUTTON */
-                                    IconButton(
-                                      onPressed: () {
-                                        setState(() => _deleteItem(key: key));
-                                      },
-                                      icon: const Icon(Icons.delete),
-                                    ),
+//                             return InkWell(
+//                               onTap: () {
+//                                 _editItem(
+//                                     ctx: context,
+//                                     mainkey: mainKey,
+//                                     selectedkey: key);
+//                               },
+//                               child: Container(
+//                                 margin:
+//                                     const EdgeInsets.symmetric(vertical: 2.5),
+//                                 color: searching &&
+//                                         (key.toUpperCase().contains(
+//                                                 searchStr.toUpperCase()) ||
+//                                             str1.toUpperCase().contains(
+//                                                 searchStr.toUpperCase()) ||
+//                                             str2.toUpperCase().contains(
+//                                                 searchStr.toUpperCase()) ||
+//                                             str3.toUpperCase().contains(
+//                                                 searchStr.toUpperCase()))
+//                                     ? Colors.red
+//                                     : darkMode
+//                                         ? Colors.grey.shade500
+//                                         : Colors.grey.shade400,
+//                                 height: 40,
+//                                 child: Row(
+//                                   children: [
+//                                     /* REMOVE ENTRY BUTTON */
+//                                     IconButton(
+//                                       onPressed: () {
+//                                         setState(() => _deleteItem(key: key));
+//                                       },
+//                                       icon: const Icon(Icons.delete),
+//                                     ),
 
-                                    /* STRING KEY */
-                                    Expanded(
-                                      child: Text(
-                                        key,
-                                        style: const TextStyle(
-                                          fontStyle: FontStyle.italic,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                        color: darkMode
-                                            ? Colors.black
-                                            : Colors.white,
-                                        width: 5),
-                                    Expanded(
-                                        child: Text(
-                                      str1,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    )),
-                                    Container(
-                                        color: darkMode
-                                            ? Colors.black
-                                            : Colors.white,
-                                        width: 5),
-                                    Expanded(
-                                        child: Text(
-                                      str2,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    )),
-                                    Container(
-                                        color: darkMode
-                                            ? Colors.black
-                                            : Colors.white,
-                                        width: 5),
-                                    Expanded(
-                                        child: Text(
-                                      str3,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    )),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
+//                                     /* STRING KEY */
+//                                     Expanded(
+//                                       child: Text(
+//                                         key,
+//                                         style: const TextStyle(
+//                                           fontStyle: FontStyle.italic,
+//                                           fontWeight: FontWeight.bold,
+//                                         ),
+//                                       ),
+//                                     ),
+//                                     Container(
+//                                         color: darkMode
+//                                             ? Colors.black
+//                                             : Colors.white,
+//                                         width: 5),
+//                                     Expanded(
+//                                         child: Text(
+//                                       str1,
+//                                       maxLines: 2,
+//                                       overflow: TextOverflow.ellipsis,
+//                                     )),
+//                                     Container(
+//                                         color: darkMode
+//                                             ? Colors.black
+//                                             : Colors.white,
+//                                         width: 5),
+//                                     Expanded(
+//                                         child: Text(
+//                                       str2,
+//                                       maxLines: 2,
+//                                       overflow: TextOverflow.ellipsis,
+//                                     )),
+//                                     Container(
+//                                         color: darkMode
+//                                             ? Colors.black
+//                                             : Colors.white,
+//                                         width: 5),
+//                                     Expanded(
+//                                         child: Text(
+//                                       str3,
+//                                       maxLines: 2,
+//                                       overflow: TextOverflow.ellipsis,
+//                                     )),
+//                                   ],
+//                                 ),
+//                               ),
+//                             );
+//                           },
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 );
+//               },
+//             ),
+//           ),
+//         ),
 
-        /* BOTTOM ROW TO ADD NEW ENTRY */
-        if (jsonFiles != null && addingNew) _rowAddNewItem(),
-      ],
-    );
-  }
+//         /* BOTTOM ROW TO ADD NEW ENTRY */
+//         if (jsonFiles != null && addingNew) _rowAddNewItem(),
+//       ],
+//     );
+//   }
 
   Widget _mainActions() {
     return Row(children: [

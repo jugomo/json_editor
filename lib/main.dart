@@ -39,11 +39,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController tecKey = TextEditingController();
   TextEditingController tecSubkey = TextEditingController();
-  TextEditingController tecV1 = TextEditingController();
-  TextEditingController tecV2 = TextEditingController();
-  TextEditingController tecV3 = TextEditingController();
   TextEditingController tecSearch = TextEditingController();
-
   ScrollController scrollController = ScrollController();
 
   final XTypeGroup typeGroup =
@@ -54,17 +50,13 @@ class _MyHomePageState extends State<MyHomePage> {
   bool searching = false;
   bool darkMode = true;
   String searchStr = "---**";
-
   int? checkedIndex;
-  String? filename1;
-  String? filename2;
-  String? filename3;
-  Map? json1;
-  Map? json2;
-  Map? json3;
-  Map? childs1;
-  Map? childs2;
-  Map? childs3;
+
+  /* following vars depend on amount of files opened */
+  List<TextEditingController>? tecLanguages;
+  List<String>? filenames;
+  List<Map>? jsonFiles;
+  List<Map>? childsFiles;
 
   //
   //
@@ -76,8 +68,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    tecKey.text =
-        checkedIndex != null ? json1!.keys.elementAt(checkedIndex!) : "";
+// TODO ***********************************************************************************
+    // tecKey.text =
+    //     checkedIndex != null ? json1!.keys.elementAt(checkedIndex!) : "";
+// TODO ***********************************************************************************
 
     return Scaffold(
         appBar: AppBar(
@@ -106,186 +100,188 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         backgroundColor: darkMode ? Colors.black87 : Colors.white,
-        body: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            /* CONTENT OF FILES */
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: json1?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    var mainKey = json1!.keys.elementAt(index);
-                    childs1 = json1?[mainKey];
-                    childs2 = json2?[mainKey];
-                    childs3 = json3?[mainKey];
-                    var childCount = childs1?.length ?? 0;
+        body: _listView()
+        //SizedBox.shrink()
+        );
+  }
 
-                    return Container(
-                      padding: const EdgeInsets.only(bottom: 20, right: 20),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          /* HEADER OF THE GROUP */
-                          Container(
-                            color: Colors.grey,
-                            padding: const EdgeInsets.all(3),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Checkbox(
-                                        value: checkedIndex == index,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            checkedIndex =
-                                                (value!) ? index : null;
-                                            addingNew = value;
-                                          });
-                                        },
-                                      ),
-                                      Text('${index + 1}'),
-                                      const SizedBox(width: 20),
-                                      Text('$mainKey'),
-                                    ],
+  Widget _listView() {
+// TODO **************************************************************************************
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        /* CONTENT OF FILES */
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(8.0),
+            child: ListView.builder(
+              controller: scrollController,
+              itemCount: files?.length ?? 0,
+              itemBuilder: (context, index) {
+                var mainKey = jsonFiles![1].keys.elementAt(index);
+                for (int i = 0; i < files!.length; i++) {}
+                childs1 = jsonFiles![1][mainKey];
+                //childs2 = json2?[mainKey];
+                //childs3 = json3?[mainKey];
+                var childCount = childs1?.length ?? 0;
+
+                return Container(
+                  padding: const EdgeInsets.only(bottom: 20, right: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      /* HEADER OF THE GROUP */
+                      Container(
+                        color: Colors.grey,
+                        padding: const EdgeInsets.all(3),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Checkbox(
+                                    value: checkedIndex == index,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        checkedIndex = (value!) ? index : null;
+                                        addingNew = value;
+                                      });
+                                    },
                                   ),
-                                ),
-                                Container(width: 5),
-                                Expanded(
-                                    child: Text('$filename1',
-                                        textAlign: TextAlign.center)),
-                                Container(width: 5),
-                                Expanded(
-                                    child: Text('$filename2',
-                                        textAlign: TextAlign.center)),
-                                Container(width: 5),
-                                Expanded(
-                                    child: Text('$filename3',
-                                        textAlign: TextAlign.center)),
-                              ],
+                                  Text('${index + 1}'),
+                                  const SizedBox(width: 20),
+                                  Text('$mainKey'),
+                                ],
+                              ),
                             ),
-                          ),
-
-                          /* CONTENT OF THE GROUP */
-                          SizedBox(
-                            height: childCount * 40 + childCount * 2.5 * 2,
-                            child: ListView.builder(
-                              itemCount: childCount,
-                              itemBuilder: (context, index) {
-                                String key = childs1!.keys.elementAt(index);
-                                var str1 = '-';
-                                var str2 = '-';
-                                var str3 = '-';
-                                try {
-                                  str1 = childs1?[key];
-                                  str2 = childs2?[key];
-                                  str3 = childs3?[key];
-                                } catch (_) {}
-
-                                return InkWell(
-                                  onTap: () {
-                                    _editItem(
-                                        ctx: context,
-                                        mainkey: mainKey,
-                                        selectedkey: key);
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        vertical: 2.5),
-                                    color: searching &&
-                                            (key.toUpperCase().contains(
-                                                    searchStr.toUpperCase()) ||
-                                                str1.toUpperCase().contains(
-                                                    searchStr.toUpperCase()) ||
-                                                str2.toUpperCase().contains(
-                                                    searchStr.toUpperCase()) ||
-                                                str3.toUpperCase().contains(
-                                                    searchStr.toUpperCase()))
-                                        ? Colors.red
-                                        : darkMode
-                                            ? Colors.grey.shade500
-                                            : Colors.grey.shade400,
-                                    height: 40,
-                                    child: Row(
-                                      children: [
-                                        /* REMOVE ENTRY BUTTON */
-                                        IconButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              print("  deleting: $key");
-                                              json1?[mainKey]?.remove(key);
-                                              json2?[mainKey]?.remove(key);
-                                              json3?[mainKey]?.remove(key);
-                                            });
-                                          },
-                                          icon: const Icon(Icons.delete),
-                                        ),
-
-                                        /* STRING KEY */
-                                        Expanded(
-                                          child: Text(
-                                            key,
-                                            style: const TextStyle(
-                                              fontStyle: FontStyle.italic,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                            color: darkMode
-                                                ? Colors.black
-                                                : Colors.white,
-                                            width: 5),
-                                        Expanded(
-                                            child: Text(
-                                          str1,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        )),
-                                        Container(
-                                            color: darkMode
-                                                ? Colors.black
-                                                : Colors.white,
-                                            width: 5),
-                                        Expanded(
-                                            child: Text(
-                                          str2,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        )),
-                                        Container(
-                                            color: darkMode
-                                                ? Colors.black
-                                                : Colors.white,
-                                            width: 5),
-                                        Expanded(
-                                            child: Text(
-                                          str3,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        )),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                            Container(width: 5),
+                            Expanded(
+                                child: Text('$filename1',
+                                    textAlign: TextAlign.center)),
+                            Container(width: 5),
+                            Expanded(
+                                child: Text('$filename2',
+                                    textAlign: TextAlign.center)),
+                            Container(width: 5),
+                            Expanded(
+                                child: Text('$filename3',
+                                    textAlign: TextAlign.center)),
+                          ],
+                        ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ),
 
-            /* BOTTOM ROW TO ADD NEW ENTRY */
-            if (json1 != null && addingNew) _rowAddNewItem(),
-          ],
-        ));
+                      /* CONTENT OF THE GROUP */
+                      SizedBox(
+                        height: childCount * 40 + childCount * 2.5 * 2,
+                        child: ListView.builder(
+                          itemCount: childCount,
+                          itemBuilder: (context, index) {
+                            String key = childs1!.keys.elementAt(index);
+                            var str1 = '-';
+                            var str2 = '-';
+                            var str3 = '-';
+                            try {
+                              str1 = childs1?[key];
+                              str2 = childs2?[key];
+                              str3 = childs3?[key];
+                            } catch (_) {}
+
+                            return InkWell(
+                              onTap: () {
+                                _editItem(
+                                    ctx: context,
+                                    mainkey: mainKey,
+                                    selectedkey: key);
+                              },
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 2.5),
+                                color: searching &&
+                                        (key.toUpperCase().contains(
+                                                searchStr.toUpperCase()) ||
+                                            str1.toUpperCase().contains(
+                                                searchStr.toUpperCase()) ||
+                                            str2.toUpperCase().contains(
+                                                searchStr.toUpperCase()) ||
+                                            str3.toUpperCase().contains(
+                                                searchStr.toUpperCase()))
+                                    ? Colors.red
+                                    : darkMode
+                                        ? Colors.grey.shade500
+                                        : Colors.grey.shade400,
+                                height: 40,
+                                child: Row(
+                                  children: [
+                                    /* REMOVE ENTRY BUTTON */
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() => _deleteItem(key: key));
+                                      },
+                                      icon: const Icon(Icons.delete),
+                                    ),
+
+                                    /* STRING KEY */
+                                    Expanded(
+                                      child: Text(
+                                        key,
+                                        style: const TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                        color: darkMode
+                                            ? Colors.black
+                                            : Colors.white,
+                                        width: 5),
+                                    Expanded(
+                                        child: Text(
+                                      str1,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    )),
+                                    Container(
+                                        color: darkMode
+                                            ? Colors.black
+                                            : Colors.white,
+                                        width: 5),
+                                    Expanded(
+                                        child: Text(
+                                      str2,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    )),
+                                    Container(
+                                        color: darkMode
+                                            ? Colors.black
+                                            : Colors.white,
+                                        width: 5),
+                                    Expanded(
+                                        child: Text(
+                                      str3,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    )),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+
+        /* BOTTOM ROW TO ADD NEW ENTRY */
+        if (jsonFiles != null && addingNew) _rowAddNewItem(),
+      ],
+    );
   }
 
   Widget _mainActions() {
@@ -323,12 +319,14 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: isEdited
             ? () async {
                 saveData(
-                  json1: json1!,
-                  json2: json2!,
-                  json3: json3!,
-                  file1: files![0],
-                  file2: files![1],
-                  file3: files![2],
+                  files: files!,
+                  jsonFiles: jsonFiles!,
+                  // json1: json1!,
+                  // json2: json2!,
+                  // json3: json3!,
+                  // file1: files![0],
+                  // file2: files![1],
+                  // file3: files![2],
                 ).then((value) {
                   setState(() {
                     isEdited = false;
@@ -354,18 +352,22 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: files != null
             ? () async {
                 setState(() {
+                  tecLanguages = null;
                   isEdited = false;
                   files = null;
                   checkedIndex = null;
-                  filename1 = null;
-                  filename2 = null;
-                  filename3 = null;
-                  json1 = null;
-                  json2 = null;
-                  json3 = null;
-                  childs1 = null;
-                  childs2 = null;
-                  childs3 = null;
+                  filenames = null;
+                  jsonFiles = null;
+                  childsFiles = null;
+                  // filename1 = null;
+                  // filename2 = null;
+                  // filename3 = null;
+                  // json1 = null;
+                  // json2 = null;
+                  // json3 = null;
+                  // childs1 = null;
+                  // childs2 = null;
+                  // childs3 = null;
                 });
               }
             : null,
@@ -414,10 +416,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _rowAddNewItem() {
-    tecSubkey.text = "";
-    tecV1.text = "";
-    tecV2.text = "";
-    tecV3.text = "";
+    _clearEditTexts();
+    // tecSubkey.text = "";
+    // tecV1.text = "";
+    // tecV2.text = "";
+    // tecV3.text = "";
 
     return Container(
       color: Colors.grey.shade600.withOpacity(0.8),
@@ -498,6 +501,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
           /* VALUES */
           const SizedBox(width: 100, child: Text("values:")),
+// TODO **********************************************************
+/*        
           SizedBox(
             width: 300,
             height: 450,
@@ -607,15 +612,27 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           )
+*/
+// TODO **********************************************************
         ],
       ),
     );
+  }
+
+  void _clearEditTexts() {
+    tecSubkey.text = "";
+
+    for (var element in tecLanguages ?? []) {
+      element.text = "";
+    }
   }
 
   void _editItem(
       {required BuildContext ctx,
       required String mainkey,
       required String selectedkey}) {
+// TODO *********************************************************************************
+/*        
     tecKey.text = selectedkey;
     tecV1.text = childs1?[selectedkey];
     tecV2.text = childs2?[selectedkey];
@@ -771,28 +788,51 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
+*/
+// TODO *********************************************************************************
+  }
+
+  void _deleteItem({required String key}) {
+    print("  deleting: $key");
+// TODO *********************************************************************************
+    // json1?[mainKey]?.remove(key);
+    // json2?[mainKey]?.remove(key);
+    // json3?[mainKey]?.remove(key);
+// TODO *********************************************************************************
   }
 
   Future<void> loadData() async {
-    if (files == null || files!.length != 3) {
+    if (files == null || files!.length == 0) {
       // TODO validate that all files contains the same main keys
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content:
-              Text('Not supported: you have to select exactly 3 json files')));
+          content: Text(
+              'Not supported: you have to select at least one json file')));
       return;
     }
 
     //
 
-    filename1 = files![0].name;
-    filename2 = files![1].name;
-    filename3 = files![2].name;
-    json1 = json.decode(await files![0].readAsString());
-    json2 = json.decode(await files![1].readAsString());
-    json3 = json.decode(await files![2].readAsString());
+    var length = files!.length;
+    print("AMOUNT: $length");
 
-    // print("-------");
+    tecLanguages = [];
+    filenames = [];
+    jsonFiles = [];
+    for (int i = 0; i < length; i++) {
+      tecLanguages!.add(TextEditingController());
+      filenames!.add(files![i].name);
+      jsonFiles!.add(json.decode(await files![i].readAsString()));
+    }
+
+    // filename1 = files![0].name;
+    // filename2 = files![1].name;
+    // filename3 = files![2].name;
+    // json1 = json.decode(await files![0].readAsString());
+    // json2 = json.decode(await files![1].readAsString());
+    // json3 = json.decode(await files![2].readAsString());
+
+    print("-------");
     // print(json1!.keys);
     // print(json2!.keys);
     // print(json3!.keys);

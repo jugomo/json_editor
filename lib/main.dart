@@ -37,6 +37,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final maincolor = Colors.blue.shade700;
+
   TextEditingController tecKey = TextEditingController();
   TextEditingController tecSubkey = TextEditingController();
   TextEditingController tecSearch = TextEditingController();
@@ -44,7 +46,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final XTypeGroup typeGroup =
       const XTypeGroup(label: 'json-files', extensions: <String>['json']);
-  List<XFile>? files;
   bool addingNew = false;
   bool isEdited = false;
   bool searching = false;
@@ -53,10 +54,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int? checkedIndex;
 
   /* following vars depend on amount of files opened */
+  List<XFile>? files;
   List<TextEditingController>? tecLanguages;
   List<String>? filenames;
   List<Map>? jsonFiles;
-  List<Map>? childsFiles;
 
   //
   //
@@ -68,48 +69,104 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-// TODO ***********************************************************************************
-    // tecKey.text =
-    //     checkedIndex != null ? json1!.keys.elementAt(checkedIndex!) : "";
-// TODO ***********************************************************************************
+    tecKey.text =
+        checkedIndex != null ? jsonFiles![0].keys.elementAt(checkedIndex!) : "";
 
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.blue.shade700,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              MenuBar(
-                style: const MenuStyle(
-                    backgroundColor:
-                        MaterialStatePropertyAll<Color>(Colors.transparent),
-                    elevation: MaterialStatePropertyAll<double>(0),
-                    shape: MaterialStatePropertyAll<ContinuousRectangleBorder>(
-                        ContinuousRectangleBorder())),
-                children: [_mainActions()],
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  const Text("THB jotason editor"),
-                  if (isEdited) const Text("  (*)"),
-                ],
-              ),
-              const Spacer(),
-            ],
-          ),
+      appBar: AppBar(
+        backgroundColor: maincolor,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            MenuBar(
+              style: const MenuStyle(
+                  backgroundColor:
+                      MaterialStatePropertyAll<Color>(Colors.transparent),
+                  elevation: MaterialStatePropertyAll<double>(0),
+                  shape: MaterialStatePropertyAll<ContinuousRectangleBorder>(
+                      ContinuousRectangleBorder())),
+              children: [_mainActions()],
+            ),
+            const Spacer(),
+            Row(
+              children: [
+                const Text("THB jotason editor"),
+                if (isEdited) const Text("  (*)"),
+              ],
+            ),
+            const Spacer(),
+          ],
         ),
-        backgroundColor: darkMode ? Colors.black87 : Colors.white,
-        body: _listView()
-        // SizedBox.shrink()
-        );
+      ),
+      backgroundColor: darkMode ? Colors.black87 : Colors.white,
+      body: _listView(),
+    );
   }
 
   Widget _listView() {
-// TODO **************************************************************************************
+    final count = files != null ? files!.length + 1 : 0;
+    final width = MediaQuery.of(context).size.width / count;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        /* FILE NAMES */
+        Container(
+          width: double.infinity,
+          height: 30,
+          color: maincolor,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: count,
+            itemExtent: width,
+            itemBuilder: (context, index) {
+              return index == 0
+                  ? ElevatedButton(
+                      onPressed: () {
+                        setState() {}
+                      },
+                      child: const Text('Add Language'),
+                    )
+                  : Text(
+                      filenames![index - 1],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    );
+            },
+          ),
+
+          // Row(
+          //   children: [
+          //     Expanded(
+          //         child: ElevatedButton(
+          //       onPressed: () {
+          //         setState() {}
+          //       },
+          //       child: const Text('Add Language'),
+          //     )),
+          //     Container(width: 5),
+          //     Expanded(
+          //         child: Text(filenames![0],
+          //             textAlign: TextAlign.center,
+          //             style: const TextStyle(
+          //                 color: Colors.white, fontWeight: FontWeight.bold))),
+          //     Container(width: 5),
+          //     Expanded(
+          //         child: Text(filenames![1],
+          //             textAlign: TextAlign.center,
+          //             style: const TextStyle(
+          //                 color: Colors.white, fontWeight: FontWeight.bold))),
+          //     Container(width: 5),
+          //     Expanded(
+          //         child: Text(filenames![2],
+          //             textAlign: TextAlign.center,
+          //             style: const TextStyle(
+          //                 color: Colors.white, fontWeight: FontWeight.bold))),
+          //   ],
+          // ),
+        ),
+
         /* CONTENT OF FILES */
         Expanded(
           child: Container(
@@ -118,14 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: scrollController,
               itemCount: files?.length ?? 0,
               itemBuilder: (context, index) {
-                //var mainKey = jsonFiles![0].keys.elementAt(index);
-                //for (int i = 0; i < files!.length; i++) {}
-                //childs1 = jsonFiles![1][mainKey];
-                //childs2 = json2?[mainKey];
-                //childs3 = json3?[mainKey];
-                //var childCount = childs1?.length ?? 0;
-
-                //return _group();
+                return _group(index: index);
               },
             ),
           ),
@@ -137,156 +187,146 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // Widget _group() {
-  //    return Container(
-  //                 padding: const EdgeInsets.only(bottom: 20, right: 20),
-  //                 child: Column(
-  //                   mainAxisSize: MainAxisSize.min,
-  //                   children: [
-  //                     /* HEADER OF THE GROUP */
-  //                     Container(
-  //                       color: Colors.grey,
-  //                       padding: const EdgeInsets.all(3),
-  //                       child: Row(
-  //                         children: [
-  //                           Expanded(
-  //                             child: Row(
-  //                               children: [
-  //                                 Checkbox(
-  //                                   value: checkedIndex == index,
-  //                                   onChanged: (value) {
-  //                                     setState(() {
-  //                                       checkedIndex = (value!) ? index : null;
-  //                                       addingNew = value;
-  //                                     });
-  //                                   },
-  //                                 ),
-  //                                 Text('${index + 1}'),
-  //                                 const SizedBox(width: 20),
-  //                                 Text('$mainKey'),
-  //                               ],
-  //                             ),
-  //                           ),
-  //                           Container(width: 5),
-  //                           Expanded(
-  //                               child: Text('$filename1',
-  //                                   textAlign: TextAlign.center)),
-  //                           Container(width: 5),
-  //                           Expanded(
-  //                               child: Text('$filename2',
-  //                                   textAlign: TextAlign.center)),
-  //                           Container(width: 5),
-  //                           Expanded(
-  //                               child: Text('$filename3',
-  //                                   textAlign: TextAlign.center)),
-  //                         ],
-  //                       ),
-  //                     ),
+  Widget _group({required int index}) {
+    var mainKey = jsonFiles![0].keys.elementAt(index);
+    //for (int i = 0; i < files!.length; i++) {}
+    List<Map>? childsFiles = [];
+    childsFiles.add(jsonFiles![0][mainKey]);
+    childsFiles.add(jsonFiles![1][mainKey]);
+    childsFiles.add(jsonFiles![2][mainKey]);
+    var childCount = childsFiles[0].length;
 
-  //                     /* CONTENT OF THE GROUP */
-  //                     SizedBox(
-  //                       height: childCount * 40 + childCount * 2.5 * 2,
-  //                       child: ListView.builder(
-  //                         itemCount: childCount,
-  //                         itemBuilder: (context, index) {
-  //                           String key = childs1!.keys.elementAt(index);
-  //                           var str1 = '-';
-  //                           var str2 = '-';
-  //                           var str3 = '-';
-  //                           try {
-  //                             str1 = childs1?[key];
-  //                             str2 = childs2?[key];
-  //                             str3 = childs3?[key];
-  //                           } catch (_) {}
+    return Container(
+      padding: const EdgeInsets.only(bottom: 20, right: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          /* HEADER OF THE GROUP */
+          Container(
+            color: Colors.grey,
+            padding: const EdgeInsets.all(3),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: checkedIndex == index,
+                        onChanged: (value) {
+                          setState(() {
+                            checkedIndex = (value!) ? index : null;
+                            addingNew = value;
+                          });
+                        },
+                      ),
+                      Text('${index + 1}'),
+                      const SizedBox(width: 20),
+                      Text('$mainKey'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-  //                           return InkWell(
-  //                             onTap: () {
-  //                               _editItem(
-  //                                   ctx: context,
-  //                                   mainkey: mainKey,
-  //                                   selectedkey: key);
-  //                             },
-  //                             child: Container(
-  //                               margin:
-  //                                   const EdgeInsets.symmetric(vertical: 2.5),
-  //                               color: searching &&
-  //                                       (key.toUpperCase().contains(
-  //                                               searchStr.toUpperCase()) ||
-  //                                           str1.toUpperCase().contains(
-  //                                               searchStr.toUpperCase()) ||
-  //                                           str2.toUpperCase().contains(
-  //                                               searchStr.toUpperCase()) ||
-  //                                           str3.toUpperCase().contains(
-  //                                               searchStr.toUpperCase()))
-  //                                   ? Colors.red
-  //                                   : darkMode
-  //                                       ? Colors.grey.shade500
-  //                                       : Colors.grey.shade400,
-  //                               height: 40,
-  //                               child: Row(
-  //                                 children: [
-  //                                   /* REMOVE ENTRY BUTTON */
-  //                                   IconButton(
-  //                                     onPressed: () {
-  //                                       setState(() => _deleteItem(key: key));
-  //                                     },
-  //                                     icon: const Icon(Icons.delete),
-  //                                   ),
+          /* CONTENT OF THE GROUP */
+          SizedBox(
+            height: childCount * 40 + childCount * 2.5 * 2,
+            child: ListView.builder(
+              itemCount: childCount,
+              itemBuilder: (context, index) {
+                String key = childsFiles[0].keys.elementAt(index);
+                var str1 = '-';
+                var str2 = '-';
+                var str3 = '-';
+                try {
+                  str1 = childsFiles[0][key];
+                  str2 = childsFiles[1][key];
+                  str3 = childsFiles[2][key];
+                } catch (_) {}
 
-  //                                   /* STRING KEY */
-  //                                   Expanded(
-  //                                     child: Text(
-  //                                       key,
-  //                                       style: const TextStyle(
-  //                                         fontStyle: FontStyle.italic,
-  //                                         fontWeight: FontWeight.bold,
-  //                                       ),
-  //                                     ),
-  //                                   ),
-  //                                   Container(
-  //                                       color: darkMode
-  //                                           ? Colors.black
-  //                                           : Colors.white,
-  //                                       width: 5),
-  //                                   Expanded(
-  //                                       child: Text(
-  //                                     str1,
-  //                                     maxLines: 2,
-  //                                     overflow: TextOverflow.ellipsis,
-  //                                   )),
-  //                                   Container(
-  //                                       color: darkMode
-  //                                           ? Colors.black
-  //                                           : Colors.white,
-  //                                       width: 5),
-  //                                   Expanded(
-  //                                       child: Text(
-  //                                     str2,
-  //                                     maxLines: 2,
-  //                                     overflow: TextOverflow.ellipsis,
-  //                                   )),
-  //                                   Container(
-  //                                       color: darkMode
-  //                                           ? Colors.black
-  //                                           : Colors.white,
-  //                                       width: 5),
-  //                                   Expanded(
-  //                                       child: Text(
-  //                                     str3,
-  //                                     maxLines: 2,
-  //                                     overflow: TextOverflow.ellipsis,
-  //                                   )),
-  //                                 ],
-  //                               ),
-  //                             ),
-  //                           );
-  //                         },
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               );
-  // }
+                return InkWell(
+                  onTap: () {
+                    _editItem(ctx: context, mainkey: mainKey, selectedkey: key);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 2.5),
+                    color: searching &&
+                            (key
+                                    .toUpperCase()
+                                    .contains(searchStr.toUpperCase()) ||
+                                str1
+                                    .toUpperCase()
+                                    .contains(searchStr.toUpperCase()) ||
+                                str2
+                                    .toUpperCase()
+                                    .contains(searchStr.toUpperCase()) ||
+                                str3
+                                    .toUpperCase()
+                                    .contains(searchStr.toUpperCase()))
+                        ? Colors.red
+                        : darkMode
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade400,
+                    height: 40,
+                    child: Row(
+                      children: [
+                        /* REMOVE ENTRY BUTTON */
+                        IconButton(
+                          onPressed: () {
+                            setState(() => _deleteItem(key: key));
+                          },
+                          icon: const Icon(Icons.delete),
+                        ),
+
+                        /* STRING KEY */
+                        Expanded(
+                          child: Text(
+                            key,
+                            style: const TextStyle(
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                            color: darkMode ? Colors.black : Colors.white,
+                            width: 5),
+                        Expanded(
+                            child: Text(
+                          str1,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        )),
+                        Container(
+                            color: darkMode ? Colors.black : Colors.white,
+                            width: 5),
+                        Expanded(
+                            child: Text(
+                          str2,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        )),
+                        Container(
+                            color: darkMode ? Colors.black : Colors.white,
+                            width: 5),
+                        Expanded(
+                            child: Text(
+                          str3,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        )),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _mainActions() {
     return Row(children: [
@@ -362,7 +402,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   checkedIndex = null;
                   filenames = null;
                   jsonFiles = null;
-                  childsFiles = null;
+                  //childsFiles = null;
                   // filename1 = null;
                   // filename2 = null;
                   // filename3 = null;
@@ -806,12 +846,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> loadData() async {
-    if (files == null || files!.length == 0) {
+    if (files == null || files!.isEmpty) {
       // TODO validate that all files contains the same main keys
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
               'Not supported: you have to select at least one json file')));
+      setState(() {
+        files = null;
+      });
       return;
     }
 
@@ -830,38 +873,49 @@ class _MyHomePageState extends State<MyHomePage> {
       jsonFiles!.add(json.decode(await files![i].readAsString()));
     }
 
-    // check files have same indexes
-
-    // for (int j = 0; j < fileAmount; j++) {
-    var keys = jsonFiles![0].keys.length;
-    //  var values = jsonFiles![0]["general"];
-    var keylist = "";
-    for (int k = 0; k < keys; k++) {
-      var valuelist = "";
-      var key = jsonFiles![0].keys.elementAt(k);
-      keylist += '$key, ';
-      for (int va = 0; va < jsonFiles![0][key].length; va++) {
-        var tmpk = jsonFiles![0][key].keys.elementAt(va);
-        valuelist += '${jsonFiles![0][key][tmpk]}, ';
+    // check files have same structure -----------------------------------------------------
+    List<List<String>> mainkeyslist = []; // main keys per file
+    List<List<int>> valueamountlist = []; // amount values per mainkey
+    List<int> mainkeysamount = [];
+    for (int j = 0; j < fileAmount; j++) {
+      mainkeyslist.add([]);
+      valueamountlist.add([]);
+      mainkeysamount.add(jsonFiles![j].keys.length);
+      for (int k = 0; k < mainkeysamount[j]; k++) {
+        List<String> valuelist = [];
+        String subkey = jsonFiles![j].keys.elementAt(k);
+        mainkeyslist[j].add(subkey);
+        for (int va = 0; va < jsonFiles![j][subkey].length; va++) {
+          var tmpk = jsonFiles![j][subkey].keys.elementAt(va);
+          try {
+            valuelist.add(jsonFiles![j][subkey][tmpk]);
+          } catch (_) {
+            valuelist.add("error");
+          }
+        }
+        valueamountlist[j].add(valuelist.length);
       }
-      print("+++ kes: $key");
-      print("+++ values: $valuelist");
-      print(
-          "------------------------------------------------------------------------------");
     }
-    print("+++ keys: $keylist");
-    //}
-
-    // filename1 = files![0].name;
-    // filename2 = files![1].name;
-    // filename3 = files![2].name;
-    // json1 = json.decode(await files![0].readAsString());
-    // json2 = json.decode(await files![1].readAsString());
-    // json3 = json.decode(await files![2].readAsString());
-
-    print("-------");
-    // print(json1!.keys);
-    // print(json2!.keys);
-    // print(json3!.keys);
+    print("***************** CHECKING ***********************");
+    //print("--> mainkeyslist: $mainkeyslist");
+    //print("--> valueamountlist: $valueamountlist");
+    bool todoOK = true;
+    for (int keys = 0; keys < mainkeyslist[0].length; keys++) {
+      String? key;
+      for (int file = 0; file < mainkeyslist.length; file++) {
+        todoOK = todoOK && ((key == null) || (key == mainkeyslist[file][keys]));
+        key = mainkeyslist[file][keys];
+        //print("--> mainkeyslist: ${mainkeyslist[file][keys]}");
+      }
+    }
+    if (!todoOK) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Not supported: the files dont match')));
+      setState(() {
+        files = null;
+      });
+    }
+    print("***************** CHECKED ************************");
+    // -------------------------------------------------------------------------------------
   }
 }

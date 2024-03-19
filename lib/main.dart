@@ -128,7 +128,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           padding: const EdgeInsets.all(8.0),
                           child: ElevatedButton(
                             onPressed: () {
-                              setState() {}
+                              setState() {
+// TODO - implement add language *****************
+                              }
                             },
                             child: const Text('Add Language'),
                           ),
@@ -147,12 +149,12 @@ class _MyHomePageState extends State<MyHomePage> {
         /* CONTENT OF FILES */
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: ListView.builder(
               controller: scrollController,
               itemCount: countMainkeys,
               itemBuilder: (context, index) {
-                return _group(index: index);
+                return _mainKeyContent(index: index);
               },
             ),
           ),
@@ -164,25 +166,23 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _group({required int index}) {
+  Widget _mainKeyContent({required int index}) {
     var mainKey = jsonFiles![0].keys.elementAt(index);
-    //for (int i = 0; i < files!.length; i++) {
-    // TODO
-    //}
     List<Map>? childsFiles = [];
-    childsFiles.add(jsonFiles![0][mainKey]);
-    childsFiles.add(jsonFiles![1][mainKey]);
-    childsFiles.add(jsonFiles![2][mainKey]);
+    for (int i = 0; i < files!.length; i++) {
+      childsFiles.add(jsonFiles![i][mainKey]);
+    }
     var childCount = childsFiles[0].length;
+    final width = MediaQuery.of(context).size.width / (childsFiles.length + 1);
 
     return Container(
       padding: const EdgeInsets.only(bottom: 20, right: 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          /* HEADER OF THE GROUP */
+          /* HEADER OF THE MAINKEY GROUP */
           Container(
-            color: maincolor,
+            color: maincolor.withAlpha(200),
             padding: const EdgeInsets.all(3),
             child: Row(
               children: [
@@ -208,21 +208,19 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
 
-          /* CONTENT OF THE GROUP */
+          /* CONTENT OF THE MAINKEY GROUP */
           SizedBox(
             height: childCount * 40 + childCount * 2.5 * 2,
             child: ListView.builder(
               itemCount: childCount,
               itemBuilder: (context, index) {
                 String key = childsFiles[0].keys.elementAt(index);
-                var str1 = '-';
-                var str2 = '-';
-                var str3 = '-';
-                try {
-                  str1 = childsFiles[0][key];
-                  str2 = childsFiles[1][key];
-                  str3 = childsFiles[2][key];
-                } catch (_) {}
+                List<String> str = [];
+                for (int i = 0; i < childsFiles.length; i++) {
+                  try {
+                    str.add(childsFiles[i][key]);
+                  } catch (_) {}
+                }
 
                 return InkWell(
                   onTap: () {
@@ -230,72 +228,87 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 2.5),
-                    color: searching &&
-                            (key
-                                    .toUpperCase()
-                                    .contains(searchStr.toUpperCase()) ||
-                                str1
-                                    .toUpperCase()
-                                    .contains(searchStr.toUpperCase()) ||
-                                str2
-                                    .toUpperCase()
-                                    .contains(searchStr.toUpperCase()) ||
-                                str3
-                                    .toUpperCase()
-                                    .contains(searchStr.toUpperCase()))
-                        ? Colors.red
-                        : darkMode
-                            ? Colors.grey.shade500
-                            : Colors.grey.shade400,
+                    color:
+// TODO ** matcher for search color ****************************************
+                        //searching &&
+                        //         (key
+                        //                 .toUpperCase()
+                        //                 .contains(searchStr.toUpperCase()) ||
+                        //             str1
+                        //                 .toUpperCase()
+                        //                 .contains(searchStr.toUpperCase()) ||
+                        //             str2
+                        //                 .toUpperCase()
+                        //                 .contains(searchStr.toUpperCase()) ||
+                        //             str3
+                        //                 .toUpperCase()
+                        //                 .contains(searchStr.toUpperCase()))
+                        //     ? Colors.red
+                        //     :
+// TODO *********************************************************************
+                        darkMode ? Colors.grey.shade500 : Colors.grey.shade400,
                     height: 40,
                     child: Row(
                       children: [
-                        /* REMOVE ENTRY BUTTON */
-                        IconButton(
-                          onPressed: () {
-                            setState(() => _deleteItem(
-                                mainKey: mainKey, selectedKey: key));
-                          },
-                          icon: const Icon(Icons.delete),
-                        ),
+                        Container(
+                          color: maincolor.withAlpha(200),
+                          width: width,
+                          height: double.infinity,
+                          child: Row(
+                            children: [
+                              /* REMOVE ENTRY BUTTON */
+                              IconButton(
+                                onPressed: () {
+                                  setState(() => _deleteItem(
+                                      mainKey: mainKey, selectedKey: key));
+                                },
+                                icon: const Icon(Icons.delete),
+                              ),
 
-                        /* STRING KEY */
-                        Expanded(
-                          child: Text(
-                            key,
-                            style: const TextStyle(
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.bold,
-                            ),
+                              /* STRING KEY */
+                              Expanded(
+                                child: Text(
+                                  key,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Container(
-                            color: darkMode ? Colors.black : Colors.white,
-                            width: 5),
+
+                        /* LIST FOR FILES VALUES */
                         Expanded(
-                            child: Text(
-                          str1,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        )),
-                        Container(
-                            color: darkMode ? Colors.black : Colors.white,
-                            width: 5),
-                        Expanded(
-                            child: Text(
-                          str2,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        )),
-                        Container(
-                            color: darkMode ? Colors.black : Colors.white,
-                            width: 5),
-                        Expanded(
-                            child: Text(
-                          str3,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        )),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: str.length,
+                            itemBuilder: (context, index) {
+                              return SizedBox(
+                                width: width,
+                                height: 40,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                        color: darkMode
+                                            ? Colors.black
+                                            : Colors.white,
+                                        width: 5),
+                                    Expanded(
+                                        child: Text(
+                                      str[index],
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    )),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -378,6 +391,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   tecLanguages = null;
                   isEdited = false;
+                  addingNew = false;
                   files = null;
                   checkedIndex = null;
                   filenames = null;

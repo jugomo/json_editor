@@ -104,8 +104,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _listView() {
-    final count = files != null ? files!.length + 1 : 0;
-    final width = MediaQuery.of(context).size.width / count;
+    final countFilenames = files != null ? files!.length + 1 : 0;
+    final countMainkeys = jsonFiles != null ? jsonFiles![0].length : 0;
+    final width = MediaQuery.of(context).size.width / countFilenames;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -118,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
             color: maincolor,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: count,
+              itemCount: countFilenames,
               itemExtent: width,
               itemBuilder: (context, index) {
                 return Center(
@@ -149,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
             padding: const EdgeInsets.all(8.0),
             child: ListView.builder(
               controller: scrollController,
-              itemCount: files?.length ?? 0,
+              itemCount: countMainkeys,
               itemBuilder: (context, index) {
                 return _group(index: index);
               },
@@ -165,7 +166,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _group({required int index}) {
     var mainKey = jsonFiles![0].keys.elementAt(index);
-    //for (int i = 0; i < files!.length; i++) {}
+    //for (int i = 0; i < files!.length; i++) {
+    // TODO
+    //}
     List<Map>? childsFiles = [];
     childsFiles.add(jsonFiles![0][mainKey]);
     childsFiles.add(jsonFiles![1][mainKey]);

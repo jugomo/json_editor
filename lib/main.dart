@@ -111,61 +111,37 @@ class _MyHomePageState extends State<MyHomePage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         /* FILE NAMES */
-        Container(
-          width: double.infinity,
-          height: 30,
-          color: maincolor,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: count,
-            itemExtent: width,
-            itemBuilder: (context, index) {
-              return index == 0
-                  ? ElevatedButton(
-                      onPressed: () {
-                        setState() {}
-                      },
-                      child: const Text('Add Language'),
-                    )
-                  : Text(
-                      filenames![index - 1],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    );
-            },
+        if (filenames != null)
+          Container(
+            width: double.infinity,
+            height: 50,
+            color: maincolor,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: count,
+              itemExtent: width,
+              itemBuilder: (context, index) {
+                return Center(
+                  child: index == 0
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState() {}
+                            },
+                            child: const Text('Add Language'),
+                          ),
+                        )
+                      : Text(
+                          filenames![index - 1],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                );
+              },
+            ),
           ),
-
-          // Row(
-          //   children: [
-          //     Expanded(
-          //         child: ElevatedButton(
-          //       onPressed: () {
-          //         setState() {}
-          //       },
-          //       child: const Text('Add Language'),
-          //     )),
-          //     Container(width: 5),
-          //     Expanded(
-          //         child: Text(filenames![0],
-          //             textAlign: TextAlign.center,
-          //             style: const TextStyle(
-          //                 color: Colors.white, fontWeight: FontWeight.bold))),
-          //     Container(width: 5),
-          //     Expanded(
-          //         child: Text(filenames![1],
-          //             textAlign: TextAlign.center,
-          //             style: const TextStyle(
-          //                 color: Colors.white, fontWeight: FontWeight.bold))),
-          //     Container(width: 5),
-          //     Expanded(
-          //         child: Text(filenames![2],
-          //             textAlign: TextAlign.center,
-          //             style: const TextStyle(
-          //                 color: Colors.white, fontWeight: FontWeight.bold))),
-          //   ],
-          // ),
-        ),
 
         /* CONTENT OF FILES */
         Expanded(
@@ -203,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           /* HEADER OF THE GROUP */
           Container(
-            color: Colors.grey,
+            color: maincolor,
             padding: const EdgeInsets.all(3),
             child: Row(
               children: [
@@ -247,7 +223,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                 return InkWell(
                   onTap: () {
-                    _editItem(ctx: context, mainkey: mainKey, selectedkey: key);
+                    _editItem(ctx: context, mainKey: mainKey, selectedKey: key);
                   },
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 2.5),
@@ -274,7 +250,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         /* REMOVE ENTRY BUTTON */
                         IconButton(
                           onPressed: () {
-                            setState(() => _deleteItem(key: key));
+                            setState(() => _deleteItem(
+                                mainKey: mainKey, selectedKey: key));
                           },
                           icon: const Icon(Icons.delete),
                         ),
@@ -673,8 +650,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _editItem(
       {required BuildContext ctx,
-      required String mainkey,
-      required String selectedkey}) {
+      required String mainKey,
+      required String selectedKey}) {
 // TODO *********************************************************************************
 /*        
     tecKey.text = selectedkey;
@@ -836,13 +813,12 @@ class _MyHomePageState extends State<MyHomePage> {
 // TODO *********************************************************************************
   }
 
-  void _deleteItem({required String key}) {
-    print("  deleting: $key");
-// TODO *********************************************************************************
-    // json1?[mainKey]?.remove(key);
-    // json2?[mainKey]?.remove(key);
-    // json3?[mainKey]?.remove(key);
-// TODO *********************************************************************************
+  void _deleteItem({required String mainKey, required String selectedKey}) {
+    print("  deleting: $selectedKey");
+
+    for (int i = 0; i < jsonFiles!.length; i++) {
+      jsonFiles![i][mainKey].remove(selectedKey);
+    }
   }
 
   Future<void> loadData() async {

@@ -224,29 +224,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
                 return InkWell(
                   onTap: () {
-                    _editItem(ctx: context, mainKey: mainKey, selectedKey: key);
+                    _editItem(
+                      ctx: context,
+                      index: index,
+                      mainKey: mainKey,
+                      selectedKey: key,
+                      childsFiles: childsFiles,
+                    );
                   },
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 2.5),
-                    color:
-// TODO ** matcher for search color ****************************************
-                        //searching &&
-                        //         (key
-                        //                 .toUpperCase()
-                        //                 .contains(searchStr.toUpperCase()) ||
-                        //             str1
-                        //                 .toUpperCase()
-                        //                 .contains(searchStr.toUpperCase()) ||
-                        //             str2
-                        //                 .toUpperCase()
-                        //                 .contains(searchStr.toUpperCase()) ||
-                        //             str3
-                        //                 .toUpperCase()
-                        //                 .contains(searchStr.toUpperCase()))
-                        //     ? Colors.red
-                        //     :
-// TODO *********************************************************************
-                        darkMode ? Colors.grey.shade500 : Colors.grey.shade400,
+                    color: _getRowColor(),
                     height: 40,
                     child: Row(
                       children: [
@@ -657,6 +645,28 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Color _getRowColor() {
+    return
+// TODO ** matcher for search color ****************************************
+        //searching &&
+        //         (key
+        //                 .toUpperCase()
+        //                 .contains(searchStr.toUpperCase()) ||
+        //             str1
+        //                 .toUpperCase()
+        //                 .contains(searchStr.toUpperCase()) ||
+        //             str2
+        //                 .toUpperCase()
+        //                 .contains(searchStr.toUpperCase()) ||
+        //             str3
+        //                 .toUpperCase()
+        //                 .contains(searchStr.toUpperCase()))
+        //     ? Colors.red
+        //     :
+// TODO *********************************************************************
+        darkMode ? Colors.grey.shade500 : Colors.grey.shade400;
+  }
+
   void _clearEditTexts() {
     tecSubkey.text = "";
 
@@ -665,16 +675,17 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _editItem(
-      {required BuildContext ctx,
-      required String mainKey,
-      required String selectedKey}) {
-// TODO *********************************************************************************
-/*        
-    tecKey.text = selectedkey;
-    tecV1.text = childs1?[selectedkey];
-    tecV2.text = childs2?[selectedkey];
-    tecV3.text = childs3?[selectedkey];
+  void _editItem({
+    required BuildContext ctx,
+    required int index,
+    required String mainKey,
+    required String selectedKey,
+    required List<Map>? childsFiles,
+  }) {
+    tecKey.text = selectedKey;
+    for (int i = 0; i < childsFiles!.length; i++) {
+      tecLanguages![i].text = childsFiles![i][selectedKey];
+    }
 
     showModalBottomSheet<void>(
       context: ctx,
@@ -687,7 +698,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Center(
             child: Column(
               children: [
-                Text(mainkey),
+                Text(mainKey),
                 Expanded(
                   child: Row(children: [
                     const Text("key:"),
@@ -716,7 +727,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(height: 10),
                 Expanded(
                   child: Row(children: [
-                    Text(filename1!),
+                    Text(filenames![0]),
                     const SizedBox(width: 10),
                     Expanded(
                       child: SizedBox(
@@ -726,13 +737,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             border: const OutlineInputBorder(
                               borderSide: BorderSide(width: 1),
                             ),
-                            hintText: filename1,
+                            hintText: filenames![0],
                             hintStyle: const TextStyle(fontSize: 12),
                           ).copyWith(
                             contentPadding: const EdgeInsets.all(5),
                           ),
                           maxLines: 10,
-                          controller: tecV1,
+                          controller: tecLanguages![0],
                         ),
                       ),
                     ),
@@ -741,7 +752,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(height: 10),
                 Expanded(
                   child: Row(children: [
-                    Text(filename2!),
+                    Text(filenames![1]),
                     const SizedBox(width: 10),
                     Expanded(
                       child: SizedBox(
@@ -751,13 +762,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             border: const OutlineInputBorder(
                               borderSide: BorderSide(width: 1),
                             ),
-                            hintText: filename2,
+                            hintText: filenames![1],
                             hintStyle: const TextStyle(fontSize: 12),
                           ).copyWith(
                             contentPadding: const EdgeInsets.all(5),
                           ),
                           maxLines: 10,
-                          controller: tecV2,
+                          controller: tecLanguages![1],
                         ),
                       ),
                     ),
@@ -766,7 +777,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(height: 10),
                 Expanded(
                   child: Row(children: [
-                    Text(filename3!),
+                    Text(filenames![2]),
                     const SizedBox(width: 10),
                     Expanded(
                       child: SizedBox(
@@ -776,13 +787,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             border: const OutlineInputBorder(
                               borderSide: BorderSide(width: 1),
                             ),
-                            hintText: filename3,
+                            hintText: filenames![2],
                             hintStyle: const TextStyle(fontSize: 12),
                           ).copyWith(
                             contentPadding: const EdgeInsets.all(5),
                           ),
                           maxLines: 10,
-                          controller: tecV3,
+                          controller: tecLanguages![2],
                         ),
                       ),
                     ),
@@ -797,9 +808,28 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () {
                         Navigator.pop(context);
 
-                        childs1?[selectedkey] = tecV1.text;
-                        childs2?[selectedkey] = tecV2.text;
-                        childs3?[selectedkey] = tecV3.text;
+                        childsFiles[0][selectedKey] = tecLanguages![0].text;
+                        childsFiles[1][selectedKey] = tecLanguages![1].text;
+                        childsFiles[2][selectedKey] = tecLanguages![2].text;
+
+                        // Map<String, dynamic> newMap = {};
+                        // int i = 1;
+                        // childsFiles[0].keys.toList().forEach((key) {
+                        //   newMap.addAll({
+                        //     "${key}": childsFiles[0][key]
+                        //   });
+                        //   i++;
+                        // });
+
+                        //childsFiles[0].keys.
+                        //    .update(selectedKey, (value) => tecKey.text);
+                        // childsFiles[1]
+                        //     .update(selectedKey, (value) => tecKey.text);
+                        // childsFiles[2]
+                        //     .update(selectedKey, (value) => tecKey.text);
+                        //childsFiles[1].keys.elementAt(index);
+                        //childsFiles[2].keys.elementAt(index);
+                        //selectedKey = tecKey.text;
 
                         // print(childs1?[selectedkey]);
                         // print(childs2?[selectedkey]);
@@ -826,7 +856,7 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
-*/
+
 // TODO *********************************************************************************
   }
 

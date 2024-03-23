@@ -88,13 +88,23 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [_mainActions()],
             ),
             const Spacer(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        height: 40,
+        color: maincolor,
+        child: Column(
+          children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Text("THB jotason editor"),
                 if (isEdited) const Text("  (*)"),
               ],
             ),
-            const Spacer(),
+            const Text("- v0.3.0 - ©jugomo", style: TextStyle(fontSize: 12)),
           ],
         ),
       ),
@@ -234,7 +244,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 2.5),
-                    color: _getRowColor(),
+                    color: _getRowColor(key: key, values: str),
                     height: 40,
                     child: Row(
                       children: [
@@ -346,12 +356,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 saveData(
                   files: files!,
                   jsonFiles: jsonFiles!,
-                  // json1: json1!,
-                  // json2: json2!,
-                  // json3: json3!,
-                  // file1: files![0],
-                  // file2: files![1],
-                  // file3: files![2],
                 ).then((value) {
                   setState(() {
                     isEdited = false;
@@ -379,6 +383,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   tecLanguages = null;
                   isEdited = false;
+                  searching = false;
                   addingNew = false;
                   files = null;
                   checkedIndex = null;
@@ -645,26 +650,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Color _getRowColor() {
-    return
-// TODO ** matcher for search color ****************************************
-        //searching &&
-        //         (key
-        //                 .toUpperCase()
-        //                 .contains(searchStr.toUpperCase()) ||
-        //             str1
-        //                 .toUpperCase()
-        //                 .contains(searchStr.toUpperCase()) ||
-        //             str2
-        //                 .toUpperCase()
-        //                 .contains(searchStr.toUpperCase()) ||
-        //             str3
-        //                 .toUpperCase()
-        //                 .contains(searchStr.toUpperCase()))
-        //     ? Colors.red
-        //     :
-// TODO *********************************************************************
-        darkMode ? Colors.grey.shade500 : Colors.grey.shade400;
+  Color _getRowColor({required String key, required List<String> values}) {
+    return (searching &&
+            (key.toUpperCase().contains(searchStr.toUpperCase()) ||
+                values.every((element) =>
+                    element.toUpperCase().contains(searchStr.toUpperCase()))))
+        ? Colors.red
+        : darkMode
+            ? Colors.grey.shade500
+            : Colors.grey.shade400;
   }
 
   void _clearEditTexts() {
@@ -777,32 +771,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () {
                           Navigator.pop(context);
 
-                          childsFiles[0][selectedKey] = tecLanguages![0].text;
-                          childsFiles[1][selectedKey] = tecLanguages![1].text;
-                          childsFiles[2][selectedKey] = tecLanguages![2].text;
-
-                          // Map<String, dynamic> newMap = {};
-                          // int i = 1;
-                          // childsFiles[0].keys.toList().forEach((key) {
-                          //   newMap.addAll({
-                          //     "${key}": childsFiles[0][key]
-                          //   });
-                          //   i++;
-                          // });
-
-                          //childsFiles[0].keys.
-                          //    .update(selectedKey, (value) => tecKey.text);
-                          // childsFiles[1]
-                          //     .update(selectedKey, (value) => tecKey.text);
-                          // childsFiles[2]
-                          //     .update(selectedKey, (value) => tecKey.text);
-                          //childsFiles[1].keys.elementAt(index);
-                          //childsFiles[2].keys.elementAt(index);
-                          //selectedKey = tecKey.text;
-
-                          // print(childs1?[selectedkey]);
-                          // print(childs2?[selectedkey]);
-                          // print(childs3?[selectedkey]);
+                          for (var (index, _) in childsFiles.indexed) {
+                            childsFiles[index][selectedKey] =
+                                tecLanguages![0].text;
+                          }
 
                           Future.delayed(const Duration(milliseconds: 500))
                               .then((value) {

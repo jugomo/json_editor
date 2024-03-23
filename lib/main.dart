@@ -224,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                 return InkWell(
                   onTap: () {
-                    _editItem(
+                    _editItemDialog(
                       ctx: context,
                       index: index,
                       mainKey: mainKey,
@@ -675,7 +675,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _editItem({
+  void _editItemDialog({
     required BuildContext ctx,
     required int index,
     required String mainKey,
@@ -698,157 +698,127 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Center(
             child: Column(
               children: [
+                /* MAIN KEY */
                 Text(mainKey),
-                Expanded(
-                  child: Row(children: [
-                    const Text("key:"),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SizedBox(
-                        child: TextField(
-                          maxLines: 1,
-                          controller: tecKey,
-                          enabled: checkedIndex == null,
-                          textAlign: TextAlign.center,
-                          textAlignVertical: TextAlignVertical.center,
-                          autocorrect: false,
-                          style: TextStyle(
-                              fontStyle: checkedIndex != null
-                                  ? FontStyle.italic
-                                  : null,
-                              fontWeight: checkedIndex != null
-                                  ? FontWeight.bold
-                                  : FontWeight.normal),
-                        ),
+
+                /* EDITED KEY */
+                Row(children: [
+                  const Text("key:"),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: SizedBox(
+                      child: TextField(
+                        maxLines: 1,
+                        controller: tecKey,
+                        enabled: checkedIndex == null,
+                        textAlign: TextAlign.center,
+                        textAlignVertical: TextAlignVertical.center,
+                        autocorrect: false,
+                        style: TextStyle(
+                            fontStyle:
+                                checkedIndex != null ? FontStyle.italic : null,
+                            fontWeight: checkedIndex != null
+                                ? FontWeight.bold
+                                : FontWeight.normal),
                       ),
                     ),
-                  ]),
-                ),
+                  ),
+                ]),
                 const SizedBox(height: 10),
+
+                /* ALL VALUES TO EDIT */
                 Expanded(
-                  child: Row(children: [
-                    Text(filenames![0]),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SizedBox(
-                        height: double.infinity,
-                        child: TextField(
-                          decoration: InputDecoration.collapsed(
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(width: 1),
+                  child: ListView.builder(
+                    itemCount: filenames!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Container(
+                        height: 160,
+                        width: double.infinity,
+                        padding: const EdgeInsets.only(bottom: 20, right: 20),
+                        child: Row(
+                          children: [
+                            Text(filenames![index]),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: SizedBox(
+                                height: double.infinity,
+                                child: TextField(
+                                  decoration: InputDecoration.collapsed(
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    hintText: filenames![index],
+                                    hintStyle: const TextStyle(fontSize: 12),
+                                  ).copyWith(
+                                    contentPadding: const EdgeInsets.all(5),
+                                  ),
+                                  maxLines: 10,
+                                  controller: tecLanguages![index],
+                                ),
+                              ),
                             ),
-                            hintText: filenames![0],
-                            hintStyle: const TextStyle(fontSize: 12),
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.all(5),
-                          ),
-                          maxLines: 10,
-                          controller: tecLanguages![0],
+                          ],
                         ),
-                      ),
-                    ),
-                  ]),
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 10),
-                Expanded(
-                  child: Row(children: [
-                    Text(filenames![1]),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SizedBox(
-                        height: double.infinity,
-                        child: TextField(
-                          decoration: InputDecoration.collapsed(
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(width: 1),
-                            ),
-                            hintText: filenames![1],
-                            hintStyle: const TextStyle(fontSize: 12),
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.all(5),
-                          ),
-                          maxLines: 10,
-                          controller: tecLanguages![1],
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Row(children: [
-                    Text(filenames![2]),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SizedBox(
-                        height: double.infinity,
-                        child: TextField(
-                          decoration: InputDecoration.collapsed(
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(width: 1),
-                            ),
-                            hintText: filenames![2],
-                            hintStyle: const TextStyle(fontSize: 12),
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.all(5),
-                          ),
-                          maxLines: 10,
-                          controller: tecLanguages![2],
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      child: const Text('Save changes'),
-                      onPressed: () {
-                        Navigator.pop(context);
 
-                        childsFiles[0][selectedKey] = tecLanguages![0].text;
-                        childsFiles[1][selectedKey] = tecLanguages![1].text;
-                        childsFiles[2][selectedKey] = tecLanguages![2].text;
+                /* BUTTONS SAVE AND CANCEL */
+                SizedBox(
+                  width: double.infinity,
+                  height: 30,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        child: const Text('Save changes'),
+                        onPressed: () {
+                          Navigator.pop(context);
 
-                        // Map<String, dynamic> newMap = {};
-                        // int i = 1;
-                        // childsFiles[0].keys.toList().forEach((key) {
-                        //   newMap.addAll({
-                        //     "${key}": childsFiles[0][key]
-                        //   });
-                        //   i++;
-                        // });
+                          childsFiles[0][selectedKey] = tecLanguages![0].text;
+                          childsFiles[1][selectedKey] = tecLanguages![1].text;
+                          childsFiles[2][selectedKey] = tecLanguages![2].text;
 
-                        //childsFiles[0].keys.
-                        //    .update(selectedKey, (value) => tecKey.text);
-                        // childsFiles[1]
-                        //     .update(selectedKey, (value) => tecKey.text);
-                        // childsFiles[2]
-                        //     .update(selectedKey, (value) => tecKey.text);
-                        //childsFiles[1].keys.elementAt(index);
-                        //childsFiles[2].keys.elementAt(index);
-                        //selectedKey = tecKey.text;
+                          // Map<String, dynamic> newMap = {};
+                          // int i = 1;
+                          // childsFiles[0].keys.toList().forEach((key) {
+                          //   newMap.addAll({
+                          //     "${key}": childsFiles[0][key]
+                          //   });
+                          //   i++;
+                          // });
 
-                        // print(childs1?[selectedkey]);
-                        // print(childs2?[selectedkey]);
-                        // print(childs3?[selectedkey]);
+                          //childsFiles[0].keys.
+                          //    .update(selectedKey, (value) => tecKey.text);
+                          // childsFiles[1]
+                          //     .update(selectedKey, (value) => tecKey.text);
+                          // childsFiles[2]
+                          //     .update(selectedKey, (value) => tecKey.text);
+                          //childsFiles[1].keys.elementAt(index);
+                          //childsFiles[2].keys.elementAt(index);
+                          //selectedKey = tecKey.text;
 
-                        Future.delayed(const Duration(milliseconds: 500))
-                            .then((value) {
-                          setState(() {
-                            isEdited = true;
+                          // print(childs1?[selectedkey]);
+                          // print(childs2?[selectedkey]);
+                          // print(childs3?[selectedkey]);
+
+                          Future.delayed(const Duration(milliseconds: 500))
+                              .then((value) {
+                            setState(() {
+                              isEdited = true;
+                            });
                           });
-                        });
-                      },
-                    ),
-                    const SizedBox(width: 20),
-                    ElevatedButton(
-                      child: const Text('Cancel'),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
+                        },
+                      ),
+                      const SizedBox(width: 20),
+                      ElevatedButton(
+                        child: const Text('Cancel'),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -856,8 +826,6 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
-
-// TODO *********************************************************************************
   }
 
   void _deleteItem({required String mainKey, required String selectedKey}) {

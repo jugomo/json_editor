@@ -37,34 +37,27 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final maincolor = Colors.blue.shade700;
+
   TextEditingController tecKey = TextEditingController();
   TextEditingController tecSubkey = TextEditingController();
-  TextEditingController tecV1 = TextEditingController();
-  TextEditingController tecV2 = TextEditingController();
-  TextEditingController tecV3 = TextEditingController();
   TextEditingController tecSearch = TextEditingController();
-
   ScrollController scrollController = ScrollController();
 
   final XTypeGroup typeGroup =
       const XTypeGroup(label: 'json-files', extensions: <String>['json']);
-  List<XFile>? files;
   bool addingNew = false;
   bool isEdited = false;
   bool searching = false;
   bool darkMode = true;
   String searchStr = "---**";
-
   int? checkedIndex;
-  String? filename1;
-  String? filename2;
-  String? filename3;
-  Map? json1;
-  Map? json2;
-  Map? json3;
-  Map? childs1;
-  Map? childs2;
-  Map? childs3;
+
+  /* following vars depend on amount of files opened */
+  List<XFile>? files;
+  List<TextEditingController>? tecLanguages;
+  List<String>? filenames;
+  List<Map>? jsonFiles;
 
   //
   //
@@ -77,215 +70,253 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     tecKey.text =
-        checkedIndex != null ? json1!.keys.elementAt(checkedIndex!) : "";
+        checkedIndex != null ? jsonFiles![0].keys.elementAt(checkedIndex!) : "";
 
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.blue.shade700,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              MenuBar(
-                style: const MenuStyle(
-                    backgroundColor:
-                        MaterialStatePropertyAll<Color>(Colors.transparent),
-                    elevation: MaterialStatePropertyAll<double>(0),
-                    shape: MaterialStatePropertyAll<ContinuousRectangleBorder>(
-                        ContinuousRectangleBorder())),
-                children: [_mainActions()],
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  const Text("THB jotason editor"),
-                  if (isEdited) const Text("  (*)"),
-                ],
-              ),
-              const Spacer(),
-            ],
+      appBar: AppBar(
+        backgroundColor: maincolor,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            MenuBar(
+              style: const MenuStyle(
+                  backgroundColor:
+                      MaterialStatePropertyAll<Color>(Colors.transparent),
+                  elevation: MaterialStatePropertyAll<double>(0),
+                  shape: MaterialStatePropertyAll<ContinuousRectangleBorder>(
+                      ContinuousRectangleBorder())),
+              children: [_mainActions()],
+            ),
+            const Spacer(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        height: 40,
+        color: maincolor,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text("THB jotason editor"),
+                if (isEdited) const Text("  (*)"),
+              ],
+            ),
+            const Text("- v0.3.0 - ©jugomo", style: TextStyle(fontSize: 12)),
+          ],
+        ),
+      ),
+      backgroundColor: darkMode ? Colors.black87 : Colors.white,
+      body: _listView(),
+    );
+  }
+
+  Widget _listView() {
+    final countFilenames = files != null ? files!.length + 1 : 0;
+    final countMainkeys = jsonFiles != null ? jsonFiles![0].length : 0;
+    final width = MediaQuery.of(context).size.width / countFilenames;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        /* FILE NAMES */
+        if (filenames != null)
+          Container(
+            width: double.infinity,
+            height: 50,
+            color: maincolor,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: countFilenames,
+              itemExtent: width,
+              itemBuilder: (context, index) {
+                return Center(
+                  child: index == 0
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState() {
+// TODO - implement add language *****************
+                              }
+                            },
+                            child: const Text('Add Language'),
+                          ),
+                        )
+                      : Text(
+                          filenames![index - 1],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                );
+              },
+            ),
+          ),
+
+        /* CONTENT OF FILES */
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            child: ListView.builder(
+              controller: scrollController,
+              itemCount: countMainkeys,
+              itemBuilder: (context, index) {
+                return _mainKeyContent(index: index);
+              },
+            ),
           ),
         ),
-        backgroundColor: darkMode ? Colors.black87 : Colors.white,
-        body: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            /* CONTENT OF FILES */
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: json1?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    var mainKey = json1!.keys.elementAt(index);
-                    childs1 = json1?[mainKey];
-                    childs2 = json2?[mainKey];
-                    childs3 = json3?[mainKey];
-                    var childCount = childs1?.length ?? 0;
 
-                    return Container(
-                      padding: const EdgeInsets.only(bottom: 20, right: 20),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          /* HEADER OF THE GROUP */
-                          Container(
-                            color: Colors.grey,
-                            padding: const EdgeInsets.all(3),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Checkbox(
-                                        value: checkedIndex == index,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            checkedIndex =
-                                                (value!) ? index : null;
-                                            addingNew = value;
-                                          });
-                                        },
-                                      ),
-                                      Text('${index + 1}'),
-                                      const SizedBox(width: 20),
-                                      Text('$mainKey'),
-                                    ],
-                                  ),
-                                ),
-                                Container(width: 5),
-                                Expanded(
-                                    child: Text('$filename1',
-                                        textAlign: TextAlign.center)),
-                                Container(width: 5),
-                                Expanded(
-                                    child: Text('$filename2',
-                                        textAlign: TextAlign.center)),
-                                Container(width: 5),
-                                Expanded(
-                                    child: Text('$filename3',
-                                        textAlign: TextAlign.center)),
-                              ],
-                            ),
-                          ),
+        /* BOTTOM ROW TO ADD NEW ENTRY */
+        if (jsonFiles != null && addingNew) _rowAddNewItem(),
+      ],
+    );
+  }
 
-                          /* CONTENT OF THE GROUP */
-                          SizedBox(
-                            height: childCount * 40 + childCount * 2.5 * 2,
-                            child: ListView.builder(
-                              itemCount: childCount,
-                              itemBuilder: (context, index) {
-                                String key = childs1!.keys.elementAt(index);
-                                var str1 = '-';
-                                var str2 = '-';
-                                var str3 = '-';
-                                try {
-                                  str1 = childs1?[key];
-                                  str2 = childs2?[key];
-                                  str3 = childs3?[key];
-                                } catch (_) {}
+  Widget _mainKeyContent({required int index}) {
+    var mainKey = jsonFiles![0].keys.elementAt(index);
+    List<Map>? childsFiles = [];
+    for (int i = 0; i < files!.length; i++) {
+      childsFiles.add(jsonFiles![i][mainKey]);
+    }
+    var childCount = childsFiles[0].length;
+    final width = MediaQuery.of(context).size.width / (childsFiles.length + 1);
 
-                                return InkWell(
-                                  onTap: () {
-                                    _editItem(
-                                        ctx: context,
-                                        mainkey: mainKey,
-                                        selectedkey: key);
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        vertical: 2.5),
-                                    color: searching &&
-                                            (key.toUpperCase().contains(
-                                                    searchStr.toUpperCase()) ||
-                                                str1.toUpperCase().contains(
-                                                    searchStr.toUpperCase()) ||
-                                                str2.toUpperCase().contains(
-                                                    searchStr.toUpperCase()) ||
-                                                str3.toUpperCase().contains(
-                                                    searchStr.toUpperCase()))
-                                        ? Colors.red
-                                        : darkMode
-                                            ? Colors.grey.shade500
-                                            : Colors.grey.shade400,
-                                    height: 40,
-                                    child: Row(
-                                      children: [
-                                        /* REMOVE ENTRY BUTTON */
-                                        IconButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              print("  deleting: $key");
-                                              json1?[mainKey]?.remove(key);
-                                              json2?[mainKey]?.remove(key);
-                                              json3?[mainKey]?.remove(key);
-                                            });
-                                          },
-                                          icon: const Icon(Icons.delete),
-                                        ),
-
-                                        /* STRING KEY */
-                                        Expanded(
-                                          child: Text(
-                                            key,
-                                            style: const TextStyle(
-                                              fontStyle: FontStyle.italic,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                            color: darkMode
-                                                ? Colors.black
-                                                : Colors.white,
-                                            width: 5),
-                                        Expanded(
-                                            child: Text(
-                                          str1,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        )),
-                                        Container(
-                                            color: darkMode
-                                                ? Colors.black
-                                                : Colors.white,
-                                            width: 5),
-                                        Expanded(
-                                            child: Text(
-                                          str2,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        )),
-                                        Container(
-                                            color: darkMode
-                                                ? Colors.black
-                                                : Colors.white,
-                                            width: 5),
-                                        Expanded(
-                                            child: Text(
-                                          str3,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        )),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+    return Container(
+      padding: const EdgeInsets.only(bottom: 20, right: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          /* HEADER OF THE MAINKEY GROUP */
+          Container(
+            color: maincolor.withAlpha(200),
+            padding: const EdgeInsets.all(3),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: checkedIndex == index,
+                        onChanged: (value) {
+                          setState(() {
+                            checkedIndex = (value!) ? index : null;
+                            addingNew = value;
+                          });
+                        },
                       ),
+                      Text('${index + 1}'),
+                      const SizedBox(width: 20),
+                      Text('$mainKey'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          /* CONTENT OF THE MAINKEY GROUP */
+          SizedBox(
+            height: childCount * 40 + childCount * 2.5 * 2,
+            child: ListView.builder(
+              itemCount: childCount,
+              itemBuilder: (context, index) {
+                String key = childsFiles[0].keys.elementAt(index);
+                List<String> str = [];
+                for (int i = 0; i < childsFiles.length; i++) {
+                  try {
+                    str.add(childsFiles[i][key]);
+                  } catch (_) {}
+                }
+
+                return InkWell(
+                  onTap: () {
+                    _editItemDialog(
+                      ctx: context,
+                      index: index,
+                      mainKey: mainKey,
+                      selectedKey: key,
+                      childsFiles: childsFiles,
                     );
                   },
-                ),
-              ),
-            ),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 2.5),
+                    color: _getRowColor(key: key, values: str),
+                    height: 40,
+                    child: Row(
+                      children: [
+                        Container(
+                          color: maincolor.withAlpha(200),
+                          width: width,
+                          height: double.infinity,
+                          child: Row(
+                            children: [
+                              /* REMOVE ENTRY BUTTON */
+                              IconButton(
+                                onPressed: () {
+                                  setState(() => _deleteItem(
+                                      mainKey: mainKey, selectedKey: key));
+                                },
+                                icon: const Icon(Icons.delete),
+                              ),
 
-            /* BOTTOM ROW TO ADD NEW ENTRY */
-            if (json1 != null && addingNew) _rowAddNewItem(),
-          ],
-        ));
+                              /* STRING KEY */
+                              Expanded(
+                                child: Text(
+                                  key,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        /* LIST FOR FILES VALUES */
+                        Expanded(
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: str.length,
+                            itemBuilder: (context, index) {
+                              return SizedBox(
+                                width: width,
+                                height: 40,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                        color: darkMode
+                                            ? Colors.black
+                                            : Colors.white,
+                                        width: 5),
+                                    Expanded(
+                                        child: Text(
+                                      str[index],
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    )),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _mainActions() {
@@ -323,12 +354,8 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: isEdited
             ? () async {
                 saveData(
-                  json1: json1!,
-                  json2: json2!,
-                  json3: json3!,
-                  file1: files![0],
-                  file2: files![1],
-                  file3: files![2],
+                  files: files!,
+                  jsonFiles: jsonFiles!,
                 ).then((value) {
                   setState(() {
                     isEdited = false;
@@ -354,18 +381,24 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: files != null
             ? () async {
                 setState(() {
+                  tecLanguages = null;
                   isEdited = false;
+                  searching = false;
+                  addingNew = false;
                   files = null;
                   checkedIndex = null;
-                  filename1 = null;
-                  filename2 = null;
-                  filename3 = null;
-                  json1 = null;
-                  json2 = null;
-                  json3 = null;
-                  childs1 = null;
-                  childs2 = null;
-                  childs3 = null;
+                  filenames = null;
+                  jsonFiles = null;
+                  //childsFiles = null;
+                  // filename1 = null;
+                  // filename2 = null;
+                  // filename3 = null;
+                  // json1 = null;
+                  // json2 = null;
+                  // json3 = null;
+                  // childs1 = null;
+                  // childs2 = null;
+                  // childs3 = null;
                 });
               }
             : null,
@@ -414,10 +447,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _rowAddNewItem() {
-    tecSubkey.text = "";
-    tecV1.text = "";
-    tecV2.text = "";
-    tecV3.text = "";
+    _clearEditTexts();
+    // tecSubkey.text = "";
+    // tecV1.text = "";
+    // tecV2.text = "";
+    // tecV3.text = "";
 
     return Container(
       color: Colors.grey.shade600.withOpacity(0.8),
@@ -498,6 +532,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
           /* VALUES */
           const SizedBox(width: 100, child: Text("values:")),
+// TODO **********************************************************
+/*        
           SizedBox(
             width: 300,
             height: 450,
@@ -607,19 +643,43 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           )
+*/
+// TODO **********************************************************
         ],
       ),
     );
   }
 
-  void _editItem(
-      {required BuildContext ctx,
-      required String mainkey,
-      required String selectedkey}) {
-    tecKey.text = selectedkey;
-    tecV1.text = childs1?[selectedkey];
-    tecV2.text = childs2?[selectedkey];
-    tecV3.text = childs3?[selectedkey];
+  Color _getRowColor({required String key, required List<String> values}) {
+    return (searching &&
+            (key.toUpperCase().contains(searchStr.toUpperCase()) ||
+                values.every((element) =>
+                    element.toUpperCase().contains(searchStr.toUpperCase()))))
+        ? Colors.red
+        : darkMode
+            ? Colors.grey.shade500
+            : Colors.grey.shade400;
+  }
+
+  void _clearEditTexts() {
+    tecSubkey.text = "";
+
+    for (var element in tecLanguages ?? []) {
+      element.text = "";
+    }
+  }
+
+  void _editItemDialog({
+    required BuildContext ctx,
+    required int index,
+    required String mainKey,
+    required String selectedKey,
+    required List<Map>? childsFiles,
+  }) {
+    tecKey.text = selectedKey;
+    for (int i = 0; i < childsFiles!.length; i++) {
+      tecLanguages![i].text = childsFiles![i][selectedKey];
+    }
 
     showModalBottomSheet<void>(
       context: ctx,
@@ -632,138 +692,105 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Center(
             child: Column(
               children: [
-                Text(mainkey),
-                Expanded(
-                  child: Row(children: [
-                    const Text("key:"),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SizedBox(
-                        child: TextField(
-                          maxLines: 1,
-                          controller: tecKey,
-                          enabled: checkedIndex == null,
-                          textAlign: TextAlign.center,
-                          textAlignVertical: TextAlignVertical.center,
-                          autocorrect: false,
-                          style: TextStyle(
-                              fontStyle: checkedIndex != null
-                                  ? FontStyle.italic
-                                  : null,
-                              fontWeight: checkedIndex != null
-                                  ? FontWeight.bold
-                                  : FontWeight.normal),
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Row(children: [
-                    Text(filename1!),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SizedBox(
-                        height: double.infinity,
-                        child: TextField(
-                          decoration: InputDecoration.collapsed(
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(width: 1),
-                            ),
-                            hintText: filename1,
-                            hintStyle: const TextStyle(fontSize: 12),
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.all(5),
-                          ),
-                          maxLines: 10,
-                          controller: tecV1,
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Row(children: [
-                    Text(filename2!),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SizedBox(
-                        height: double.infinity,
-                        child: TextField(
-                          decoration: InputDecoration.collapsed(
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(width: 1),
-                            ),
-                            hintText: filename2,
-                            hintStyle: const TextStyle(fontSize: 12),
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.all(5),
-                          ),
-                          maxLines: 10,
-                          controller: tecV2,
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Row(children: [
-                    Text(filename3!),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: SizedBox(
-                        height: double.infinity,
-                        child: TextField(
-                          decoration: InputDecoration.collapsed(
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(width: 1),
-                            ),
-                            hintText: filename3,
-                            hintStyle: const TextStyle(fontSize: 12),
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.all(5),
-                          ),
-                          maxLines: 10,
-                          controller: tecV3,
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      child: const Text('Save changes'),
-                      onPressed: () {
-                        Navigator.pop(context);
+                /* MAIN KEY */
+                Text(mainKey),
 
-                        childs1?[selectedkey] = tecV1.text;
-                        childs2?[selectedkey] = tecV2.text;
-                        childs3?[selectedkey] = tecV3.text;
+                /* EDITED KEY */
+                Row(children: [
+                  const Text("key:"),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: SizedBox(
+                      child: TextField(
+                        maxLines: 1,
+                        controller: tecKey,
+                        enabled: checkedIndex == null,
+                        textAlign: TextAlign.center,
+                        textAlignVertical: TextAlignVertical.center,
+                        autocorrect: false,
+                        style: TextStyle(
+                            fontStyle:
+                                checkedIndex != null ? FontStyle.italic : null,
+                            fontWeight: checkedIndex != null
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 10),
 
-                        // print(childs1?[selectedkey]);
-                        // print(childs2?[selectedkey]);
-                        // print(childs3?[selectedkey]);
+                /* ALL VALUES TO EDIT */
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filenames!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Container(
+                        height: 160,
+                        width: double.infinity,
+                        padding: const EdgeInsets.only(bottom: 20, right: 20),
+                        child: Row(
+                          children: [
+                            Text(filenames![index]),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: SizedBox(
+                                height: double.infinity,
+                                child: TextField(
+                                  decoration: InputDecoration.collapsed(
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    hintText: filenames![index],
+                                    hintStyle: const TextStyle(fontSize: 12),
+                                  ).copyWith(
+                                    contentPadding: const EdgeInsets.all(5),
+                                  ),
+                                  maxLines: 10,
+                                  controller: tecLanguages![index],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
 
-                        Future.delayed(const Duration(milliseconds: 500))
-                            .then((value) {
-                          setState(() {
-                            isEdited = true;
+                /* BUTTONS SAVE AND CANCEL */
+                SizedBox(
+                  width: double.infinity,
+                  height: 30,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        child: const Text('Save changes'),
+                        onPressed: () {
+                          Navigator.pop(context);
+
+                          for (var (index, _) in childsFiles.indexed) {
+                            childsFiles[index][selectedKey] =
+                                tecLanguages![0].text;
+                          }
+
+                          Future.delayed(const Duration(milliseconds: 500))
+                              .then((value) {
+                            setState(() {
+                              isEdited = true;
+                            });
                           });
-                        });
-                      },
-                    ),
-                    const SizedBox(width: 20),
-                    ElevatedButton(
-                      child: const Text('Cancel'),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
+                        },
+                      ),
+                      const SizedBox(width: 20),
+                      ElevatedButton(
+                        child: const Text('Cancel'),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -773,28 +800,85 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void _deleteItem({required String mainKey, required String selectedKey}) {
+    print("  deleting: $selectedKey");
+
+    for (int i = 0; i < jsonFiles!.length; i++) {
+      jsonFiles![i][mainKey].remove(selectedKey);
+    }
+  }
+
   Future<void> loadData() async {
-    if (files == null || files!.length != 3) {
+    if (files == null || files!.isEmpty) {
       // TODO validate that all files contains the same main keys
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content:
-              Text('Not supported: you have to select exactly 3 json files')));
+          content: Text(
+              'Not supported: you have to select at least one json file')));
+      setState(() {
+        files = null;
+      });
       return;
     }
 
     //
 
-    filename1 = files![0].name;
-    filename2 = files![1].name;
-    filename3 = files![2].name;
-    json1 = json.decode(await files![0].readAsString());
-    json2 = json.decode(await files![1].readAsString());
-    json3 = json.decode(await files![2].readAsString());
+    var fileAmount = files!.length;
+    print("AMOUNT: $fileAmount");
 
-    // print("-------");
-    // print(json1!.keys);
-    // print(json2!.keys);
-    // print(json3!.keys);
+    // initialize data
+    tecLanguages = [];
+    filenames = [];
+    jsonFiles = [];
+    for (int i = 0; i < fileAmount; i++) {
+      tecLanguages!.add(TextEditingController());
+      filenames!.add(files![i].name);
+      jsonFiles!.add(json.decode(await files![i].readAsString()));
+    }
+
+    // check files have same structure -----------------------------------------------------
+    List<List<String>> mainkeyslist = []; // main keys per file
+    List<List<int>> valueamountlist = []; // amount values per mainkey
+    List<int> mainkeysamount = [];
+    for (int j = 0; j < fileAmount; j++) {
+      mainkeyslist.add([]);
+      valueamountlist.add([]);
+      mainkeysamount.add(jsonFiles![j].keys.length);
+      for (int k = 0; k < mainkeysamount[j]; k++) {
+        List<String> valuelist = [];
+        String subkey = jsonFiles![j].keys.elementAt(k);
+        mainkeyslist[j].add(subkey);
+        for (int va = 0; va < jsonFiles![j][subkey].length; va++) {
+          var tmpk = jsonFiles![j][subkey].keys.elementAt(va);
+          try {
+            valuelist.add(jsonFiles![j][subkey][tmpk]);
+          } catch (_) {
+            valuelist.add("error");
+          }
+        }
+        valueamountlist[j].add(valuelist.length);
+      }
+    }
+    print("***************** CHECKING ***********************");
+    //print("--> mainkeyslist: $mainkeyslist");
+    //print("--> valueamountlist: $valueamountlist");
+    bool todoOK = true;
+    for (int keys = 0; keys < mainkeyslist[0].length; keys++) {
+      String? key;
+      for (int file = 0; file < mainkeyslist.length; file++) {
+        todoOK = todoOK && ((key == null) || (key == mainkeyslist[file][keys]));
+        key = mainkeyslist[file][keys];
+        //print("--> mainkeyslist: ${mainkeyslist[file][keys]}");
+      }
+    }
+    if (!todoOK) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Not supported: the files dont match')));
+      setState(() {
+        files = null;
+      });
+    }
+    print("***************** CHECKED ************************");
+    // -------------------------------------------------------------------------------------
   }
 }

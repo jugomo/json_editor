@@ -38,6 +38,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final maincolor = Colors.blue.shade700;
+  final dialogBgColor = Colors.grey.shade300;
 
   TextEditingController tecKey = TextEditingController();
   TextEditingController tecSubkey = TextEditingController();
@@ -75,21 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: maincolor,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MenuBar(
-              style: const MenuStyle(
-                  backgroundColor:
-                      MaterialStatePropertyAll<Color>(Colors.transparent),
-                  elevation: MaterialStatePropertyAll<double>(0),
-                  shape: MaterialStatePropertyAll<ContinuousRectangleBorder>(
-                      ContinuousRectangleBorder())),
-              children: [_mainActions()],
-            ),
-            const Spacer(),
-          ],
-        ),
+        title: _mainActions(),
       ),
       bottomNavigationBar: Container(
         height: 40,
@@ -169,9 +156,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ),
-
-        /* BOTTOM ROW TO ADD NEW ENTRY */
-        if (jsonFiles != null && addingNew) _rowAddNewItem(),
       ],
     );
   }
@@ -320,279 +304,268 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _mainActions() {
-    return Row(children: [
-      /* DARKMODE */
-      Row(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Checkbox(
-            value: darkMode,
-            onChanged: (value) {
-              setState(() {
-                darkMode = !darkMode;
-              });
-            },
+          /* OPEN */
+          ElevatedButton(
+            onPressed: files == null
+                ? () async {
+                    files = await openFiles(
+                        confirmButtonText: "abrir todos",
+                        acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+
+                    await loadData();
+                    setState(() {});
+                  }
+                : null,
+            child: const Text('open'),
           ),
-          const Text("darkmode"),
+          const SizedBox(width: 10),
+
+          /* SAVE */
+          ElevatedButton(
+            onPressed: isEdited
+                ? () async {
+                    saveData(
+                      files: files!,
+                      jsonFiles: jsonFiles!,
+                    ).then((value) {
+                      setState(() {
+                        isEdited = false;
+                      });
+                    });
+                  }
+                : null,
+            child: const Text('save', style: TextStyle(color: Colors.orange)),
+          ),
+          const SizedBox(width: 10),
+
+          /* NEW KEY */
+          ElevatedButton(
+            onPressed: files != null
+                ? () async {
+                    setState(() {
+                      addingNew = !addingNew;
+                      _rowAddNewItem(ctx: context);
+                    });
+                  }
+                : null,
+            child: const Text('new key', style: TextStyle(color: Colors.green)),
+          ),
+          const SizedBox(width: 10),
+
+          /* RESET */
+          ElevatedButton(
+            onPressed: files != null
+                ? () async {
+                    setState(() {
+                      tecLanguages = null;
+                      isEdited = false;
+                      searching = false;
+                      tecSearch.text = "";
+                      searchStr = "---**";
+                      addingNew = false;
+                      files = null;
+                      checkedIndex = null;
+                      filenames = null;
+                      jsonFiles = null;
+                    });
+                  }
+                : null,
+            child: const Text('reset', style: TextStyle(color: Colors.red)),
+          ),
+          const SizedBox(width: 10),
+
+          /* SEARCH */
+          ElevatedButton(
+            onPressed: files != null
+                ? () async {
+                    setState(() {
+                      searching = !searching;
+                      if (!searching) {
+                        tecSearch.text = "";
+                        searchStr = "---**";
+                      }
+                    });
+                  }
+                : null,
+            child: const Text('search', style: TextStyle(color: Colors.blue)),
+          ),
+          const SizedBox(width: 10),
+          if (searching)
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(),
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+              ),
+              width: 180,
+              height: 40,
+              padding: const EdgeInsets.all(5),
+              child: TextField(
+                controller: tecSearch,
+                onChanged: (value) {
+                  setState(() {
+                    searchStr = value;
+                    if (value == "") {
+                      searchStr = "---**";
+                    }
+                  });
+                },
+              ),
+            ),
+
+          /* DARKMODE */
+          const SizedBox(width: 10),
+          Row(
+            children: [
+              Checkbox(
+                value: darkMode,
+                onChanged: (value) {
+                  setState(() {
+                    darkMode = !darkMode;
+                  });
+                },
+              ),
+              const Text("darkmode"),
+            ],
+          ),
         ],
       ),
-      const SizedBox(width: 10),
-      ElevatedButton(
-        onPressed: files == null
-            ? () async {
-                files = await openFiles(
-                    confirmButtonText: "abrir todos",
-                    acceptedTypeGroups: <XTypeGroup>[typeGroup]);
-
-                await loadData();
-                setState(() {});
-              }
-            : null,
-        child: const Text('open'),
-      ),
-      const SizedBox(width: 10),
-      ElevatedButton(
-        onPressed: isEdited
-            ? () async {
-                saveData(
-                  files: files!,
-                  jsonFiles: jsonFiles!,
-                ).then((value) {
-                  setState(() {
-                    isEdited = false;
-                  });
-                });
-              }
-            : null,
-        child: const Text('save', style: TextStyle(color: Colors.orange)),
-      ),
-      const SizedBox(width: 10),
-      ElevatedButton(
-        onPressed: files != null
-            ? () async {
-                setState(() {
-                  addingNew = !addingNew;
-                });
-              }
-            : null,
-        child: const Text('new key', style: TextStyle(color: Colors.green)),
-      ),
-      const SizedBox(width: 10),
-      ElevatedButton(
-        onPressed: files != null
-            ? () async {
-                setState(() {
-                  tecLanguages = null;
-                  isEdited = false;
-                  searching = false;
-                  addingNew = false;
-                  files = null;
-                  checkedIndex = null;
-                  filenames = null;
-                  jsonFiles = null;
-                  //childsFiles = null;
-                  // filename1 = null;
-                  // filename2 = null;
-                  // filename3 = null;
-                  // json1 = null;
-                  // json2 = null;
-                  // json3 = null;
-                  // childs1 = null;
-                  // childs2 = null;
-                  // childs3 = null;
-                });
-              }
-            : null,
-        child: const Text('reset', style: TextStyle(color: Colors.red)),
-      ),
-      const SizedBox(width: 10),
-      ElevatedButton(
-        onPressed: files != null
-            ? () async {
-                setState(() {
-                  searching = !searching;
-                  if (!searching) {
-                    tecSearch.text = "";
-                    searchStr = "---**";
-                  }
-                });
-              }
-            : null,
-        child: const Text('search', style: TextStyle(color: Colors.blue)),
-      ),
-      const SizedBox(width: 10),
-      if (searching)
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(),
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.white,
-          ),
-          width: 180,
-          height: 40,
-          padding: const EdgeInsets.all(5),
-          child: TextField(
-            controller: tecSearch,
-            onChanged: (value) {
-              setState(() {
-                searchStr = value;
-                if (value == "") {
-                  searchStr = "---**";
-                }
-                print(value);
-              });
-            },
-          ),
-        ),
-    ]);
+    );
   }
 
-  Widget _rowAddNewItem() {
+  void _rowAddNewItem({required BuildContext ctx}) {
     _clearEditTexts();
     // tecSubkey.text = "";
     // tecV1.text = "";
     // tecV2.text = "";
     // tecV3.text = "";
 
-    return Container(
-      color: Colors.grey.shade600.withOpacity(0.8),
-      width: double.infinity,
-      padding: const EdgeInsets.all(8),
-      height: 450,
-      child: Row(
-        children: [
-          /* KEYS */
-          SizedBox(
-            height: 120,
-            width: 180,
-            child: Column(
+// TODO *********
+// List<Map>? childsFiles = [];
+//     for (int i = 0; i < files!.length; i++) {
+//       childsFiles.add(jsonFiles![i][mainKey]);
+//     }
+// TODO *********
+
+    showModalBottomSheet<void>(
+        context: ctx,
+        isScrollControlled: true,
+        builder: (BuildContext context) {
+          return Container(
+            color: dialogBgColor,
+            width: double.infinity,
+            height: MediaQuery.of(ctx).size.height * 0.8,
+            padding: const EdgeInsets.all(8),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    const Text("mainkey:"),
-                    SizedBox(
-                      width: 100,
-                      height: 35,
-                      child: TextField(
-                        maxLines: 1,
-                        controller: tecKey,
-                        // onChanged: (value) {
-                        //   print("changed: $value");
-                        //   if (!value.isEmpty) {
-                        //     setState(() {});
-                        //   }
-                        // },
-                        enabled: checkedIndex == null,
-                        textAlign: TextAlign.center,
-                        textAlignVertical: TextAlignVertical.center,
-                        autocorrect: false,
-                        style: TextStyle(
-                            fontStyle:
-                                checkedIndex != null ? FontStyle.italic : null,
-                            fontWeight: checkedIndex != null
-                                ? FontWeight.bold
-                                : FontWeight.normal),
+                /* KEYS */
+                SizedBox(
+                  height: 120,
+                  width: 180,
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Text("mainkey:"),
+                          SizedBox(
+                            width: 100,
+                            height: 35,
+                            child: TextField(
+                              maxLines: 1,
+                              controller: tecKey,
+                              // onChanged: (value) {
+                              //   print("changed: $value");
+                              //   if (!value.isEmpty) {
+                              //     setState(() {});
+                              //   }
+                              // },
+                              enabled: checkedIndex == null,
+                              textAlign: TextAlign.center,
+                              textAlignVertical: TextAlignVertical.center,
+                              autocorrect: false,
+                              style: TextStyle(
+                                  fontStyle: checkedIndex != null
+                                      ? FontStyle.italic
+                                      : null,
+                                  fontWeight: checkedIndex != null
+                                      ? FontWeight.bold
+                                      : FontWeight.normal),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const Text("subkey:"),
-                    SizedBox(
-                      width: 100,
-                      height: 35,
-                      child: TextField(
-                        maxLines: 1,
-                        controller: tecSubkey,
-                        // onChanged: (value) {
-                        //   print("changed: $value");
-                        //   if (!value.isEmpty) {
-                        //     setState(() {});
-                        //   }
-                        // },
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          const Text("subkey:"),
+                          SizedBox(
+                            width: 100,
+                            height: 35,
+                            child: TextField(
+                              maxLines: 1,
+                              controller: tecSubkey,
+                              // onChanged: (value) {
+                              //   print("changed: $value");
+                              //   if (!value.isEmpty) {
+                              //     setState(() {});
+                              //   }
+                              // },
 
-                        textAlign: TextAlign.center,
-                        textAlignVertical: TextAlignVertical.center,
-                        autocorrect: false,
-                        style: TextStyle(
-                            fontStyle:
-                                checkedIndex != null ? FontStyle.italic : null,
-                            fontWeight: checkedIndex != null
-                                ? FontWeight.bold
-                                : FontWeight.normal),
+                              textAlign: TextAlign.center,
+                              textAlignVertical: TextAlignVertical.center,
+                              autocorrect: false,
+                              style: TextStyle(
+                                  fontStyle: checkedIndex != null
+                                      ? FontStyle.italic
+                                      : null,
+                                  fontWeight: checkedIndex != null
+                                      ? FontWeight.bold
+                                      : FontWeight.normal),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 20),
+                const SizedBox(width: 20),
 
-          /* VALUES */
-          const SizedBox(width: 100, child: Text("values:")),
+                /* VALUES */
+                const SizedBox(width: 100, child: Text("values:")),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filenames!.length,
+                    itemBuilder: (context, index) {
+                      //
+                      return SizedBox(
+                        width: 300,
+                        height: 100,
+                        child: TextField(
+                          decoration: InputDecoration.collapsed(
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(width: 1),
+                            ),
+                            hintText: filenames![index],
+                            hintStyle: const TextStyle(fontSize: 12),
+                          ).copyWith(
+                            contentPadding: const EdgeInsets.all(5),
+                          ),
+                          maxLines: 10,
+                          controller: tecLanguages![index],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
 // TODO **********************************************************
-/*        
-          SizedBox(
-            width: 300,
-            height: 450,
-            child: Column(
-              children: [
-                SizedBox(
-                  width: 300,
-                  height: 100,
-                  child: TextField(
-                    decoration: InputDecoration.collapsed(
-                      border: const OutlineInputBorder(
-                        borderSide: BorderSide(width: 1),
-                      ),
-                      hintText: filename1,
-                      hintStyle: const TextStyle(fontSize: 12),
-                    ).copyWith(
-                      contentPadding: const EdgeInsets.all(5),
-                    ),
-                    maxLines: 10,
-                    controller: tecV1,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: 300,
-                  height: 100,
-                  child: TextField(
-                    decoration: InputDecoration.collapsed(
-                      border: const OutlineInputBorder(
-                          borderSide: BorderSide(width: 1)),
-                      hintText: filename2,
-                      hintStyle: const TextStyle(fontSize: 12),
-                    ).copyWith(
-                      contentPadding: const EdgeInsets.all(5),
-                    ),
-                    maxLines: 10,
-                    controller: tecV2,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: 300,
-                  height: 100,
-                  child: TextField(
-                    decoration: InputDecoration.collapsed(
-                      border: const OutlineInputBorder(
-                          borderSide: BorderSide(width: 1)),
-                      hintText: filename3,
-                      hintStyle: const TextStyle(fontSize: 12),
-                    ).copyWith(
-                      contentPadding: const EdgeInsets.all(5),
-                    ),
-                    maxLines: 10,
-                    controller: tecV3,
-                  ),
-                ),
-              ],
-            ),
-          ),
+/*
           const SizedBox(width: 50),
           Column(
             children: [
@@ -603,6 +576,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () async {
                     setState(() {
                       if (tecKey.text != "" && tecSubkey.text != "") {
+                        for ((index, item) in chil)
                         if (checkedIndex != null) {
                           var subkey = tecSubkey.text;
                           checkedIndex = null;
@@ -645,28 +619,10 @@ class _MyHomePageState extends State<MyHomePage> {
           )
 */
 // TODO **********************************************************
-        ],
-      ),
-    );
-  }
-
-  Color _getRowColor({required String key, required List<String> values}) {
-    return (searching &&
-            (key.toUpperCase().contains(searchStr.toUpperCase()) ||
-                values.every((element) =>
-                    element.toUpperCase().contains(searchStr.toUpperCase()))))
-        ? Colors.red
-        : darkMode
-            ? Colors.grey.shade500
-            : Colors.grey.shade400;
-  }
-
-  void _clearEditTexts() {
-    tecSubkey.text = "";
-
-    for (var element in tecLanguages ?? []) {
-      element.text = "";
-    }
+              ],
+            ),
+          );
+        });
   }
 
   void _editItemDialog({
@@ -686,9 +642,9 @@ class _MyHomePageState extends State<MyHomePage> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
+          color: dialogBgColor,
           height: MediaQuery.of(ctx).size.height * 0.8,
           padding: const EdgeInsets.all(10),
-          color: Colors.grey.shade300,
           child: Center(
             child: Column(
               children: [
@@ -773,7 +729,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                           for (var (index, _) in childsFiles.indexed) {
                             childsFiles[index][selectedKey] =
-                                tecLanguages![0].text;
+                                tecLanguages![index].text;
                           }
 
                           Future.delayed(const Duration(milliseconds: 500))
@@ -801,11 +757,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _deleteItem({required String mainKey, required String selectedKey}) {
-    print("  deleting: $selectedKey");
-
     for (int i = 0; i < jsonFiles!.length; i++) {
       jsonFiles![i][mainKey].remove(selectedKey);
     }
+  }
+
+  void _clearEditTexts() {
+    tecSubkey.text = "";
+
+    for (var element in tecLanguages ?? []) {
+      element.text = "";
+    }
+  }
+
+  Color _getRowColor({required String key, required List<String> values}) {
+    return (searching &&
+            (key.toUpperCase().contains(searchStr.toUpperCase()) ||
+                values.any(
+                  (element) {
+                    return element
+                        .toUpperCase()
+                        .contains(searchStr.toUpperCase());
+                  },
+                )))
+        ? Colors.red
+        : darkMode
+            ? Colors.grey.shade500
+            : Colors.grey.shade400;
   }
 
   Future<void> loadData() async {
@@ -824,7 +802,6 @@ class _MyHomePageState extends State<MyHomePage> {
     //
 
     var fileAmount = files!.length;
-    print("AMOUNT: $fileAmount");
 
     // initialize data
     tecLanguages = [];

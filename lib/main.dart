@@ -91,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (isEdited) const Text("  (*)"),
               ],
             ),
-            const Text("- v0.3.0 - ©jugomo", style: TextStyle(fontSize: 12)),
+            const Text("- v0.4.0 - ©jugomo", style: TextStyle(fontSize: 12)),
           ],
         ),
       ),

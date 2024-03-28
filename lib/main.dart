@@ -37,8 +37,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final maincolor = Colors.blue.shade700;
-  final dialogBgColor = Colors.grey.shade300;
+  final maincolorLight = Colors.blue.shade600;
+  final maincolorDark = Colors.blue.shade900;
+  final backgroundColorLight = Colors.grey.shade100;
+  final backgroundColorDark = Colors.black;
+  final dialogBgColorLight = Colors.grey.shade100;
+  final dialogBgColorDark = Colors.grey.shade500;
+  final editedBgColorLight = Colors.red;
+  final editedBgColorDark = Colors.red.shade900;
 
   TextEditingController tecKey = TextEditingController();
   TextEditingController tecSubkey = TextEditingController();
@@ -47,18 +53,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final XTypeGroup typeGroup =
       const XTypeGroup(label: 'json-files', extensions: <String>['json']);
-  bool addingNew = false;
   bool isEdited = false;
   bool searching = false;
   bool darkMode = true;
   String searchStr = "---**";
-  int? checkedIndex;
 
   /* following vars depend on amount of files opened */
   List<XFile>? files;
   List<TextEditingController>? tecLanguages;
   List<String>? filenames;
   List<Map>? jsonFiles;
+  List<bool>? expandedMainkeyContent;
 
   //
   //
@@ -70,28 +75,74 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    tecKey.text =
-        checkedIndex != null ? jsonFiles![0].keys.elementAt(checkedIndex!) : "";
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: maincolor,
+        backgroundColor: _getMainColor(),
         title: _mainActions(),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: filenames != null
+          ? Container(
+              margin: const EdgeInsets.only(right: 80),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  /* NEW GROUP */
+                  ElevatedButton(
+                    onPressed: files != null
+                        ? () async {
+                            setState(() {
+                              tecKey.text = "";
+                              _rowAddNewGroupOrString(
+                                  ctx: context, checkedIndex: null);
+                            });
+                          }
+                        : null,
+                    style: ButtonStyle(
+                        elevation: MaterialStateProperty.all(20),
+                        backgroundColor:
+                            MaterialStateProperty.all(_getBackgoundColor()),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    side: BorderSide(color: maincolorDark)))),
+                    child: Text('+', style: TextStyle(color: _getMainColor())),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
       bottomNavigationBar: Container(
-        height: 40,
-        color: maincolor,
-        child: Column(
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        color: _getMainColor(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text("THB jotason editor"),
-                if (isEdited) const Text("  (*)"),
-              ],
+            const Text("©jugomo",
+                style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+            const Spacer(),
+            const Text("the jotason editor",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const Spacer(),
+            InkWell(
+              onTap: () {
+                _downloadDialog(ctx: context);
+              },
+              child: const Row(
+                children: [
+                  Text("- v0.4.0 -", style: TextStyle(fontSize: 12)),
+                  SizedBox(width: 10),
+                  Icon(
+                    Icons.download,
+                    color: Colors.white,
+                    size: 15,
+                  ),
+                ],
+              ),
             ),
-            const Text("- v0.3.0 - ©jugomo", style: TextStyle(fontSize: 12)),
           ],
         ),
       ),
@@ -111,9 +162,10 @@ class _MyHomePageState extends State<MyHomePage> {
         /* FILE NAMES */
         if (filenames != null)
           Container(
+            margin: const EdgeInsets.only(top: 3),
             width: double.infinity,
             height: 50,
-            color: maincolor,
+            color: !isEdited ? _getMainColor() : _getEditedColor(),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: countFilenames,
@@ -121,22 +173,56 @@ class _MyHomePageState extends State<MyHomePage> {
               itemBuilder: (context, index) {
                 return Center(
                   child: index == 0
+                      /* FIRST ITEM IS HEADER FOR KEYS */
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState() {
-// TODO - implement add language *****************
-                              }
-                            },
-                            child: const Text('Add Language'),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              /* EDITED HINT */
+                              if (isEdited)
+                                const Text("(*)",
+                                    style: TextStyle(color: Colors.white)),
+                              const SizedBox(width: 10),
+
+                              /* NEW LANG */
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState() {
+                                    // TODO - implement add language *****************
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: _getBackgoundColor()),
+                                child: const Text('+ lang'),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
                           ),
                         )
-                      : Text(
-                          filenames![index - 1],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
+
+                      /* OTHER ITEMS ARE HEADERS FOR EACH LANGUAGE */
+                      : Row(
+                          children: [
+                            // separator
+                            Container(
+                              margin: const EdgeInsets.only(left: 10),
+                              width: 5,
+                              height: double.infinity,
+                              color: darkMode ? Colors.black : Colors.white,
+                            ),
+
+                            // language name
+                            Expanded(
+                              child: Text(
+                                filenames![index - 1],
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                         ),
                 );
               },
@@ -151,6 +237,7 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: scrollController,
               itemCount: countMainkeys,
               itemBuilder: (context, index) {
+                expandedMainkeyContent!.add(false);
                 return _mainKeyContent(index: index);
               },
             ),
@@ -175,129 +262,171 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           /* HEADER OF THE MAINKEY GROUP */
-          Container(
-            color: maincolor.withAlpha(200),
-            padding: const EdgeInsets.all(3),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        value: checkedIndex == index,
-                        onChanged: (value) {
-                          setState(() {
-                            checkedIndex = (value!) ? index : null;
-                            addingNew = value;
-                          });
-                        },
-                      ),
-                      Text('${index + 1}'),
-                      const SizedBox(width: 20),
-                      Text('$mainKey'),
-                    ],
+          InkWell(
+            onTap: () {
+              setState(() {
+                expandedMainkeyContent![index] =
+                    !expandedMainkeyContent![index];
+              });
+            },
+            child: Container(
+              color: _getMainColor().withAlpha(200),
+              padding: const EdgeInsets.all(3),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            tecKey.text = jsonFiles![0].keys.elementAt(index);
+                            _rowAddNewGroupOrString(
+                                ctx: context, checkedIndex: index);
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: _getBackgoundColor()),
+                          child: Text(
+                            "+ String",
+                            style: TextStyle(color: _getMainColor()),
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '(${index + 1})  $mainKey',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        const Spacer(),
+                        Icon(expandedMainkeyContent![index]
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward)
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
           /* CONTENT OF THE MAINKEY GROUP */
-          SizedBox(
-            height: childCount * 40 + childCount * 2.5 * 2,
-            child: ListView.builder(
-              itemCount: childCount,
-              itemBuilder: (context, index) {
-                String key = childsFiles[0].keys.elementAt(index);
-                List<String> str = [];
-                for (int i = 0; i < childsFiles.length; i++) {
-                  try {
-                    str.add(childsFiles[i][key]);
-                  } catch (_) {}
-                }
+          expandedMainkeyContent![index]
+              ? SizedBox(
+                  height: childCount * 40 + childCount * 2.5 * 2,
+                  child: ListView.builder(
+                    itemCount: childCount,
+                    itemBuilder: (context, index) {
+                      String key = childsFiles[0].keys.elementAt(index);
+                      List<String> str = [];
+                      for (int i = 0; i < childsFiles.length; i++) {
+                        try {
+                          str.add(childsFiles[i][key]);
+                        } catch (_) {}
+                      }
 
-                return InkWell(
-                  onTap: () {
-                    _editItemDialog(
-                      ctx: context,
-                      index: index,
-                      mainKey: mainKey,
-                      selectedKey: key,
-                      childsFiles: childsFiles,
-                    );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 2.5),
-                    color: _getRowColor(key: key, values: str),
-                    height: 40,
-                    child: Row(
-                      children: [
-                        Container(
-                          color: maincolor.withAlpha(200),
-                          width: width,
-                          height: double.infinity,
+                      return InkWell(
+                        onTap: () {
+                          _editItemDialog(
+                            ctx: context,
+                            index: index,
+                            mainKey: mainKey,
+                            selectedKey: key,
+                            childsFiles: childsFiles,
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 2.5),
+                          color: _getRowColor(key: key, values: str),
+                          height: 40,
                           child: Row(
                             children: [
-                              /* REMOVE ENTRY BUTTON */
-                              IconButton(
-                                onPressed: () {
-                                  setState(() => _deleteItem(
-                                      mainKey: mainKey, selectedKey: key));
-                                },
-                                icon: const Icon(Icons.delete),
+                              Container(
+                                color: _getMainColor().withAlpha(200),
+                                width: width,
+                                height: double.infinity,
+                                child: Row(
+                                  children: [
+                                    /* REMOVE ENTRY BUTTON */
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          isEdited = true;
+                                          _deleteItem(
+                                              mainKey: mainKey,
+                                              selectedKey: key);
+                                        });
+                                      },
+                                      icon: const Icon(Icons.delete),
+                                    ),
+
+                                    /* STRING KEY */
+                                    Expanded(
+                                      child: Text(
+                                        key,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
 
-                              /* STRING KEY */
+                              /* LIST FOR FILES VALUES */
                               Expanded(
-                                child: Text(
-                                  key,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: str.length,
+                                  itemBuilder: (context, index) {
+                                    return SizedBox(
+                                      width: width,
+                                      height: 40,
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                              color: darkMode
+                                                  ? Colors.black
+                                                  : Colors.white,
+                                              width: 5),
+                                          Expanded(
+                                              child: Text(
+                                            str[index],
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          )),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ],
                           ),
                         ),
-
-                        /* LIST FOR FILES VALUES */
-                        Expanded(
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: str.length,
-                            itemBuilder: (context, index) {
-                              return SizedBox(
-                                width: width,
-                                height: 40,
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        color: darkMode
-                                            ? Colors.black
-                                            : Colors.white,
-                                        width: 5),
-                                    Expanded(
-                                        child: Text(
-                                      str[index],
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    )),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
+                )
+              : InkWell(
+                  onTap: () {
+                    setState(() {
+                      expandedMainkeyContent![index] =
+                          !expandedMainkeyContent![index];
+                    });
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: 15,
+                    color: _getMainColor().withAlpha(200),
+                    alignment: Alignment.centerRight,
+                    child: const Text("tap to expand ...",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 10)),
+                  ),
+                ),
         ],
       ),
     );
@@ -312,6 +441,8 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           /* OPEN */
           ElevatedButton(
+            style:
+                ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
             onPressed: files == null
                 ? () async {
                     files = await openFiles(
@@ -328,6 +459,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
           /* SAVE */
           ElevatedButton(
+            style:
+                ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
             onPressed: isEdited
                 ? () async {
                     saveData(
@@ -344,22 +477,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           const SizedBox(width: 10),
 
-          /* NEW KEY */
-          ElevatedButton(
-            onPressed: files != null
-                ? () async {
-                    setState(() {
-                      addingNew = !addingNew;
-                      _rowAddNewItem(ctx: context);
-                    });
-                  }
-                : null,
-            child: const Text('new key', style: TextStyle(color: Colors.green)),
-          ),
-          const SizedBox(width: 10),
-
           /* RESET */
           ElevatedButton(
+            style:
+                ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
             onPressed: files != null
                 ? () async {
                     setState(() {
@@ -368,11 +489,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       searching = false;
                       tecSearch.text = "";
                       searchStr = "---**";
-                      addingNew = false;
                       files = null;
-                      checkedIndex = null;
                       filenames = null;
                       jsonFiles = null;
+                      expandedMainkeyContent = null;
                     });
                   }
                 : null,
@@ -382,6 +502,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
           /* SEARCH */
           ElevatedButton(
+            style:
+                ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
             onPressed: files != null
                 ? () async {
                     setState(() {
@@ -389,57 +511,92 @@ class _MyHomePageState extends State<MyHomePage> {
                       if (!searching) {
                         tecSearch.text = "";
                         searchStr = "---**";
+                        setState(() {
+                          for (var (index, _)
+                              in expandedMainkeyContent!.indexed) {
+                            expandedMainkeyContent![index] = false;
+                          }
+                        });
+                      } else {
+                        setState(() {
+                          for (var (index, _)
+                              in expandedMainkeyContent!.indexed) {
+                            expandedMainkeyContent![index] = true;
+                          }
+                        });
                       }
                     });
                   }
                 : null,
             child: const Text('search', style: TextStyle(color: Colors.blue)),
           ),
-          const SizedBox(width: 10),
           if (searching)
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(),
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
-              ),
-              width: 180,
-              height: 40,
-              padding: const EdgeInsets.all(5),
-              child: TextField(
-                controller: tecSearch,
-                onChanged: (value) {
-                  setState(() {
-                    searchStr = value;
-                    if (value == "") {
-                      searchStr = "---**";
-                    }
-                  });
-                },
-              ),
+            Row(
+              children: [
+                const SizedBox(width: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(),
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white,
+                  ),
+                  width: 180,
+                  height: 40,
+                  padding: const EdgeInsets.all(5),
+                  child: TextField(
+                    controller: tecSearch,
+                    onChanged: (value) {
+                      setState(() {
+                        searchStr = value;
+                        if (value == "") {
+                          searchStr = "---**";
+                        }
+                      });
+                    },
+                  ),
+                ),
+              ],
             ),
 
           /* DARKMODE */
           const SizedBox(width: 10),
-          Row(
-            children: [
-              Checkbox(
-                value: darkMode,
-                onChanged: (value) {
-                  setState(() {
-                    darkMode = !darkMode;
-                  });
-                },
+          InkWell(
+            onTap: () {
+              setState(() {
+                darkMode = !darkMode;
+              });
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              decoration: BoxDecoration(
+                border: null,
+                borderRadius: BorderRadius.circular(20),
+                color: _getBackgoundColor(),
               ),
-              const Text("darkmode"),
-            ],
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: darkMode,
+                    onChanged: null,
+                  ),
+                  Text("darkmode",
+                      style: TextStyle(
+                          color: darkMode ? Colors.white : Colors.black,
+                          fontSize: 12)),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _rowAddNewItem({required BuildContext ctx}) {
+  void _rowAddNewGroupOrString({
+    required BuildContext ctx,
+    required int? checkedIndex,
+  }) {
     _clearEditTexts();
     // tecSubkey.text = "";
     // tecV1.text = "";
@@ -454,175 +611,203 @@ class _MyHomePageState extends State<MyHomePage> {
 // TODO *********
 
     showModalBottomSheet<void>(
-        context: ctx,
-        isScrollControlled: true,
-        builder: (BuildContext context) {
-          return Container(
-            color: dialogBgColor,
-            width: double.infinity,
-            height: MediaQuery.of(ctx).size.height * 0.8,
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                /* KEYS */
-                SizedBox(
-                  height: 120,
-                  width: 180,
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          const Text("mainkey:"),
-                          SizedBox(
-                            width: 100,
-                            height: 35,
-                            child: TextField(
-                              maxLines: 1,
-                              controller: tecKey,
-                              // onChanged: (value) {
-                              //   print("changed: $value");
-                              //   if (!value.isEmpty) {
-                              //     setState(() {});
-                              //   }
-                              // },
-                              enabled: checkedIndex == null,
-                              textAlign: TextAlign.center,
-                              textAlignVertical: TextAlignVertical.center,
-                              autocorrect: false,
-                              style: TextStyle(
-                                  fontStyle: checkedIndex != null
-                                      ? FontStyle.italic
-                                      : null,
-                                  fontWeight: checkedIndex != null
-                                      ? FontWeight.bold
-                                      : FontWeight.normal),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          const Text("subkey:"),
-                          SizedBox(
-                            width: 100,
-                            height: 35,
-                            child: TextField(
-                              maxLines: 1,
-                              controller: tecSubkey,
-                              // onChanged: (value) {
-                              //   print("changed: $value");
-                              //   if (!value.isEmpty) {
-                              //     setState(() {});
-                              //   }
-                              // },
-
-                              textAlign: TextAlign.center,
-                              textAlignVertical: TextAlignVertical.center,
-                              autocorrect: false,
-                              style: TextStyle(
-                                  fontStyle: checkedIndex != null
-                                      ? FontStyle.italic
-                                      : null,
-                                  fontWeight: checkedIndex != null
-                                      ? FontWeight.bold
-                                      : FontWeight.normal),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 20),
-
-                /* VALUES */
-                const SizedBox(width: 100, child: Text("values:")),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: filenames!.length,
-                    itemBuilder: (context, index) {
-                      //
-                      return SizedBox(
-                        width: 300,
-                        height: 100,
-                        child: TextField(
-                          decoration: InputDecoration.collapsed(
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide(width: 1),
-                            ),
-                            hintText: filenames![index],
-                            hintStyle: const TextStyle(fontSize: 12),
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.all(5),
-                          ),
-                          maxLines: 10,
-                          controller: tecLanguages![index],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-// TODO **********************************************************
-/*
-          const SizedBox(width: 50),
-          Column(
+      context: ctx,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return SizedBox(
+          width: double.infinity,
+          height: MediaQuery.of(ctx).size.height * 0.8,
+          child: Column(
             children: [
-              /* ADD BUTTON */
-              SizedBox(
-                width: 100,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      if (tecKey.text != "" && tecSubkey.text != "") {
-                        for ((index, item) in chil)
-                        if (checkedIndex != null) {
-                          var subkey = tecSubkey.text;
-                          checkedIndex = null;
-                          childs1![subkey] = tecV1.text;
-                          childs2![subkey] = tecV2.text;
-                          childs3![subkey] = tecV3.text;
-                          addingNew = false;
-                          isEdited = true;
-                        } else {
-                          json1![tecKey.text] = {tecSubkey.text: tecV1.text};
-                          json2![tecKey.text] = {tecSubkey.text: tecV2.text};
-                          json3![tecKey.text] = {tecSubkey.text: tecV3.text};
-                          addingNew = false;
-                          isEdited = true;
-                        }
-                      } else {
-                        print("TODO: show msg fill all data!");
-                      }
-                    });
-                  },
-                  child: const Text('Add'),
-                ),
+              /* TITLE */
+              Container(
+                color: _getMainColor(),
+                width: double.infinity,
+                height: 50,
+                alignment: Alignment.center,
+                child: Text(checkedIndex == null ? "ADD GROUP" : "ADD STRING",
+                    style: const TextStyle(color: Colors.white),
+                    textAlign: TextAlign.center),
               ),
-              const SizedBox(height: 50),
 
-              /* CLOSE BUTTON */
-              SizedBox(
-                width: 100,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      addingNew = false;
-                      checkedIndex = null;
-                    });
-                  },
-                  child: const Text('close'),
+              /* CONTENT */
+              Expanded(
+                child: Container(
+                  color: _getDialogBgColor(),
+                  padding: const EdgeInsets.all(10),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        /* KEYS */
+                        Column(
+                          children: [
+                            /* mainkey */
+                            Row(children: [
+                              const Text("Group key:"),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: SizedBox(
+                                  child: TextField(
+                                    maxLines: 1,
+                                    controller: tecKey,
+                                    // onChanged: (value) {
+                                    //   print("changed: $value");
+                                    //   if (!value.isEmpty) {
+                                    //     setState(() {});
+                                    //   }
+                                    // },
+                                    enabled: checkedIndex == null,
+                                    textAlign: TextAlign.center,
+                                    textAlignVertical: TextAlignVertical.center,
+                                    autocorrect: false,
+                                    style: TextStyle(
+                                        fontStyle: checkedIndex != null
+                                            ? FontStyle.italic
+                                            : null,
+                                        fontWeight: checkedIndex != null
+                                            ? FontWeight.bold
+                                            : FontWeight.normal),
+                                  ),
+                                ),
+                              ),
+                            ]),
+                            const SizedBox(height: 20),
+
+                            /* secondary key */
+                            Row(children: [
+                              const Text("String key:"),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: SizedBox(
+                                  child: TextField(
+                                    maxLines: 1,
+                                    controller: tecSubkey,
+                                    // onChanged: (value) {
+                                    //   print("changed: $value");
+                                    //   if (!value.isEmpty) {
+                                    //     setState(() {});
+                                    //   }
+                                    // },
+
+                                    textAlign: TextAlign.center,
+                                    textAlignVertical: TextAlignVertical.center,
+                                    autocorrect: false,
+                                    style: TextStyle(
+                                        fontStyle: checkedIndex != null
+                                            ? FontStyle.italic
+                                            : null,
+                                        fontWeight: checkedIndex != null
+                                            ? FontWeight.bold
+                                            : FontWeight.normal),
+                                  ),
+                                ),
+                              ),
+                            ]),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+
+                        /* ALL VALUES TO ADD */
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: filenames!.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Container(
+                                height: 160,
+                                width: double.infinity,
+                                padding: const EdgeInsets.only(
+                                    bottom: 20, right: 20),
+                                child: Row(
+                                  children: [
+                                    Text(filenames![index]),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: double.infinity,
+                                        child: TextField(
+                                          decoration: InputDecoration.collapsed(
+                                            border: const OutlineInputBorder(
+                                              borderSide: BorderSide(width: 1),
+                                            ),
+                                            hintText: filenames![index],
+                                            hintStyle:
+                                                const TextStyle(fontSize: 12),
+                                          ).copyWith(
+                                            contentPadding:
+                                                const EdgeInsets.all(5),
+                                          ),
+                                          maxLines: 10,
+                                          controller: tecLanguages![index],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        /* BUTTONS ADD AND CANCEL */
+                        SizedBox(
+                          width: double.infinity,
+                          height: 30,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              /* ADD BUTTON */
+                              ElevatedButton(
+                                child: const Text('Add'),
+                                onPressed: () async {
+                                  setState(() {
+                                    // if (tecKey.text != "" && tecSubkey.text != "") {
+                                    //   for ((index, item) in chil)
+                                    //   if (checkedIndex != null) {
+                                    //     var subkey = tecSubkey.text;
+                                    //     checkedIndex = null;
+                                    //     childs1![subkey] = tecV1.text;
+                                    //     childs2![subkey] = tecV2.text;
+                                    //     childs3![subkey] = tecV3.text;
+                                    //     addingNew = false;
+                                    //     isEdited = true;
+                                    //   } else {
+                                    //     json1![tecKey.text] = {tecSubkey.text: tecV1.text};
+                                    //     json2![tecKey.text] = {tecSubkey.text: tecV2.text};
+                                    //     json3![tecKey.text] = {tecSubkey.text: tecV3.text};
+                                    //     addingNew = false;
+                                    //     isEdited = true;
+                                    //   }
+                                    // } else {
+                                    //   print("TODO: show msg fill all data!");
+                                    // }
+                                  });
+                                },
+                              ),
+                              const SizedBox(width: 10),
+
+                              /* CLOSE BUTTON */
+                              ElevatedButton(
+                                child: const Text('close'),
+                                onPressed: () async {
+                                  setState(() {
+                                    Navigator.pop(context);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
-          )
-*/
-// TODO **********************************************************
-              ],
-            ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 
   void _editItemDialog({
@@ -641,119 +826,190 @@ class _MyHomePageState extends State<MyHomePage> {
       context: ctx,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
-          color: dialogBgColor,
+        return SizedBox(
+          width: double.infinity,
           height: MediaQuery.of(ctx).size.height * 0.8,
-          padding: const EdgeInsets.all(10),
-          child: Center(
-            child: Column(
-              children: [
-                /* MAIN KEY */
-                Text(mainKey),
+          child: Column(
+            children: [
+              /* TITLE */
+              Container(
+                color: _getMainColor(),
+                width: double.infinity,
+                height: 50,
+                alignment: Alignment.center,
+                child: const Text("EDIT STRING",
+                    style: TextStyle(color: Colors.white),
+                    textAlign: TextAlign.center),
+              ),
 
-                /* EDITED KEY */
-                Row(children: [
-                  const Text("key:"),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: SizedBox(
-                      child: TextField(
-                        maxLines: 1,
-                        controller: tecKey,
-                        enabled: checkedIndex == null,
-                        textAlign: TextAlign.center,
-                        textAlignVertical: TextAlignVertical.center,
-                        autocorrect: false,
-                        style: TextStyle(
-                            fontStyle:
-                                checkedIndex != null ? FontStyle.italic : null,
-                            fontWeight: checkedIndex != null
-                                ? FontWeight.bold
-                                : FontWeight.normal),
-                      ),
-                    ),
-                  ),
-                ]),
-                const SizedBox(height: 10),
-
-                /* ALL VALUES TO EDIT */
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: filenames!.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        height: 160,
-                        width: double.infinity,
-                        padding: const EdgeInsets.only(bottom: 20, right: 20),
-                        child: Row(
+              /* CONTENT */
+              Expanded(
+                child: Container(
+                  color: _getDialogBgColor(),
+                  padding: const EdgeInsets.all(10),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        /* MAIN KEY */
+                        Row(
                           children: [
-                            Text(filenames![index]),
+                            const Text("Group key:"),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: SizedBox(
-                                height: double.infinity,
-                                child: TextField(
-                                  decoration: InputDecoration.collapsed(
-                                    border: const OutlineInputBorder(
-                                      borderSide: BorderSide(width: 1),
-                                    ),
-                                    hintText: filenames![index],
-                                    hintStyle: const TextStyle(fontSize: 12),
-                                  ).copyWith(
-                                    contentPadding: const EdgeInsets.all(5),
-                                  ),
-                                  maxLines: 10,
-                                  controller: tecLanguages![index],
-                                ),
-                              ),
+                              child: Text(mainKey,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
-                      );
-                    },
+
+                        /* EDITED KEY */
+                        Row(children: [
+                          const Text("String key:"),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              selectedKey,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ]),
+                        const SizedBox(height: 30),
+
+                        /* ALL VALUES TO EDIT */
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: filenames!.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Container(
+                                height: 160,
+                                width: double.infinity,
+                                padding: const EdgeInsets.only(
+                                    bottom: 20, right: 20),
+                                child: Row(
+                                  children: [
+                                    Text(filenames![index]),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: double.infinity,
+                                        child: TextField(
+                                          decoration: InputDecoration.collapsed(
+                                            border: const OutlineInputBorder(
+                                              borderSide: BorderSide(width: 1),
+                                            ),
+                                            hintText: filenames![index],
+                                            hintStyle:
+                                                const TextStyle(fontSize: 12),
+                                          ).copyWith(
+                                            contentPadding:
+                                                const EdgeInsets.all(5),
+                                          ),
+                                          maxLines: 10,
+                                          controller: tecLanguages![index],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        /* BUTTONS SAVE AND CANCEL */
+                        SizedBox(
+                          width: double.infinity,
+                          height: 30,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              /* SAVE BUTTON */
+                              ElevatedButton(
+                                child: const Text('Save changes'),
+                                onPressed: () {
+                                  Navigator.pop(context);
+
+                                  for (var (index, _) in childsFiles.indexed) {
+                                    childsFiles[index][selectedKey] =
+                                        tecLanguages![index].text;
+                                  }
+
+                                  Future.delayed(
+                                          const Duration(milliseconds: 500))
+                                      .then((value) {
+                                    setState(() {
+                                      isEdited = true;
+                                    });
+                                  });
+                                },
+                              ),
+                              const SizedBox(width: 20),
+
+                              /* CLOSE BUTTON */
+                              ElevatedButton(
+                                child: const Text('Cancel'),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
-
-                /* BUTTONS SAVE AND CANCEL */
-                SizedBox(
-                  width: double.infinity,
-                  height: 30,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        child: const Text('Save changes'),
-                        onPressed: () {
-                          Navigator.pop(context);
-
-                          for (var (index, _) in childsFiles.indexed) {
-                            childsFiles[index][selectedKey] =
-                                tecLanguages![index].text;
-                          }
-
-                          Future.delayed(const Duration(milliseconds: 500))
-                              .then((value) {
-                            setState(() {
-                              isEdited = true;
-                            });
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 20),
-                      ElevatedButton(
-                        child: const Text('Cancel'),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
     );
+  }
+
+  void _downloadDialog({required BuildContext ctx}) {
+    showModalBottomSheet<void>(
+        context: ctx,
+        isScrollControlled: true,
+        builder: (BuildContext context) {
+          return SizedBox(
+            width: double.infinity,
+            height: MediaQuery.of(ctx).size.height * 0.8,
+            child: Column(
+              children: [
+                /* TITLE */
+                Container(
+                  color: _getMainColor(),
+                  width: double.infinity,
+                  height: 50,
+                  alignment: Alignment.center,
+                  child: const Text("DOWNLOAD",
+                      style: TextStyle(color: Colors.white),
+                      textAlign: TextAlign.center),
+                ),
+
+                /* CONTENT */
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    color: _getDialogBgColor(),
+                    padding: const EdgeInsets.all(10),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("WINDOWS"),
+                        Text("macOS"),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
   }
 
   void _deleteItem({required String mainKey, required String selectedKey}) {
@@ -767,6 +1023,30 @@ class _MyHomePageState extends State<MyHomePage> {
 
     for (var element in tecLanguages ?? []) {
       element.text = "";
+    }
+  }
+
+  Color _getMainColor() {
+    if (darkMode) {
+      return maincolorDark;
+    } else {
+      return maincolorLight;
+    }
+  }
+
+  Color _getBackgoundColor() {
+    if (darkMode) {
+      return backgroundColorDark;
+    } else {
+      return backgroundColorLight;
+    }
+  }
+
+  Color _getDialogBgColor() {
+    if (darkMode) {
+      return dialogBgColorDark;
+    } else {
+      return dialogBgColorLight;
     }
   }
 
@@ -786,10 +1066,16 @@ class _MyHomePageState extends State<MyHomePage> {
             : Colors.grey.shade400;
   }
 
+  Color _getEditedColor() {
+    if (darkMode) {
+      return editedBgColorDark;
+    } else {
+      return editedBgColorLight;
+    }
+  }
+
   Future<void> loadData() async {
     if (files == null || files!.isEmpty) {
-      // TODO validate that all files contains the same main keys
-
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
               'Not supported: you have to select at least one json file')));
@@ -807,6 +1093,8 @@ class _MyHomePageState extends State<MyHomePage> {
     tecLanguages = [];
     filenames = [];
     jsonFiles = [];
+    expandedMainkeyContent = [];
+
     for (int i = 0; i < fileAmount; i++) {
       tecLanguages!.add(TextEditingController());
       filenames!.add(files![i].name);

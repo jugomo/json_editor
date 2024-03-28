@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
+import 'dart:html' as html;
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:json_editor/save/save.dart';
@@ -996,12 +997,44 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: double.infinity,
                     color: _getDialogBgColor(),
                     padding: const EdgeInsets.all(10),
-                    child: const Column(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("WINDOWS"),
-                        Text("macOS"),
+                        InkWell(
+                          onTap: () {
+                            var url =
+                                "./release/0.5.0/json_editor_0.5.0_macos.zip";
+                            html.AnchorElement anchorElement =
+                                html.AnchorElement(href: url);
+                            anchorElement.download = url;
+                            anchorElement.click();
+                          },
+                          child: Text(
+                            "WINDOWS - v0.5.0",
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            var url =
+                                "./release/0.5.0/json_editor_0.5.0_win.zip";
+                            html.AnchorElement anchorElement =
+                                html.AnchorElement(href: url);
+                            anchorElement.download = url;
+                            anchorElement.click();
+                          },
+                          child: Text(
+                            "macOS - v0.5.0",
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

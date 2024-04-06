@@ -1,10 +1,14 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
-import 'dart:html' as html;
+
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:yaml/yaml.dart';
 import 'package:json_editor/save/save.dart';
+
+import 'download/download.dart';
 
 void main() {
   runApp(const MyApp());
@@ -132,11 +136,11 @@ class _MyHomePageState extends State<MyHomePage> {
               onTap: () {
                 _downloadDialog(ctx: context);
               },
-              child: const Row(
+              child: Row(
                 children: [
-                  Text("- v0.4.0 -", style: TextStyle(fontSize: 12)),
-                  SizedBox(width: 10),
-                  Icon(
+                  _getVersion(),
+                  const SizedBox(width: 10),
+                  const Icon(
                     Icons.download,
                     color: Colors.white,
                     size: 15,
@@ -190,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               ElevatedButton(
                                 onPressed: () {
                                   setState() {
-                                    // TODO - implement add language *****************
+// TODO - implement add language *****************
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -249,7 +253,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _mainKeyContent({required int index}) {
-    var mainKey = jsonFiles![0].keys.elementAt(index);
+    String mainKey = jsonFiles![0].keys.elementAt(index);
     List<Map>? childsFiles = [];
     for (int i = 0; i < files!.length; i++) {
       childsFiles.add(jsonFiles![i][mainKey]);
@@ -278,18 +282,39 @@ class _MyHomePageState extends State<MyHomePage> {
                   Expanded(
                     child: Row(
                       children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            tecKey.text = jsonFiles![0].keys.elementAt(index);
-                            _rowAddNewGroupOrString(
-                                ctx: context, checkedIndex: index);
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: _getBackgoundColor()),
-                          child: Text(
-                            "+ String",
-                            style: TextStyle(color: _getMainColor()),
-                          ),
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                tecKey.text =
+                                    jsonFiles![0].keys.elementAt(index);
+                                _rowAddNewGroupOrString(
+                                    ctx: context, checkedIndex: index);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.all(0),
+                                  backgroundColor: _getBackgoundColor()),
+                              child: Text(
+                                "Add",
+                                style: TextStyle(color: _getMainColor()),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            ElevatedButton(
+                              onPressed: () {
+                                tecKey.text =
+                                    jsonFiles![0].keys.elementAt(index);
+                                _deleteGroup(mainKey: mainKey);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.all(0),
+                                  backgroundColor: _getBackgoundColor()),
+                              child: const Text(
+                                "Delete",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
                         ),
                         const Spacer(),
                         Text(
@@ -594,22 +619,33 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _getVersion() {
+    return FutureBuilder(
+        future: rootBundle.loadString("pubspec.yaml"),
+        builder: (context, snapshot) {
+          String ver = "0";
+          if (snapshot.hasData) {
+            ver = loadYaml(snapshot.data!)["version"];
+            ver = ver.substring(0, ver.lastIndexOf('+'));
+          }
+          return Text("- v$ver -", style: const TextStyle(fontSize: 12));
+        });
+  }
+
+  void _deleteGroup({required String mainKey}) {
+    setState(() {
+      for (var (index, _) in jsonFiles!.indexed) {
+        jsonFiles![index].remove(mainKey);
+      }
+      isEdited = true;
+    });
+  }
+
   void _rowAddNewGroupOrString({
     required BuildContext ctx,
     required int? checkedIndex,
   }) {
     _clearEditTexts();
-    // tecSubkey.text = "";
-    // tecV1.text = "";
-    // tecV2.text = "";
-    // tecV3.text = "";
-
-// TODO *********
-// List<Map>? childsFiles = [];
-//     for (int i = 0; i < files!.length; i++) {
-//       childsFiles.add(jsonFiles![i][mainKey]);
-//     }
-// TODO *********
 
     showModalBottomSheet<void>(
       context: ctx,
@@ -762,26 +798,33 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: const Text('Add'),
                                 onPressed: () async {
                                   setState(() {
-                                    // if (tecKey.text != "" && tecSubkey.text != "") {
-                                    //   for ((index, item) in chil)
-                                    //   if (checkedIndex != null) {
-                                    //     var subkey = tecSubkey.text;
-                                    //     checkedIndex = null;
-                                    //     childs1![subkey] = tecV1.text;
-                                    //     childs2![subkey] = tecV2.text;
-                                    //     childs3![subkey] = tecV3.text;
-                                    //     addingNew = false;
-                                    //     isEdited = true;
-                                    //   } else {
-                                    //     json1![tecKey.text] = {tecSubkey.text: tecV1.text};
-                                    //     json2![tecKey.text] = {tecSubkey.text: tecV2.text};
-                                    //     json3![tecKey.text] = {tecSubkey.text: tecV3.text};
-                                    //     addingNew = false;
-                                    //     isEdited = true;
-                                    //   }
-                                    // } else {
-                                    //   print("TODO: show msg fill all data!");
-                                    // }
+                                    var mainKey = tecKey.text;
+                                    var subkey = tecSubkey.text;
+                                    if (mainKey != "" && subkey != "") {
+                                      if (checkedIndex == null) {
+                                        // adding new group and string
+                                        print(
+                                            "TODO implement Add group / string");
+                                      } else {
+                                        // adding string in existing group
+
+                                        for (var (int index, Map file)
+                                            in jsonFiles!.indexed) {
+                                          Map<String, dynamic> tmp = {};
+                                          var lang = tecLanguages![index].text;
+                                          tmp.addAll({subkey: lang});
+                                          file[mainKey].addAll(tmp);
+                                        }
+                                      }
+                                      isEdited = true;
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      Navigator.of(context).pop();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'please fill all data!')));
+                                    }
                                   });
                                 },
                               ),
@@ -820,7 +863,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }) {
     tecKey.text = selectedKey;
     for (int i = 0; i < childsFiles!.length; i++) {
-      tecLanguages![i].text = childsFiles![i][selectedKey];
+      tecLanguages![i].text = childsFiles[i][selectedKey];
     }
 
     showModalBottomSheet<void>(
@@ -992,53 +1035,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
 
                 /* CONTENT */
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    color: _getDialogBgColor(),
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            var url =
-                                "./release/0.5.0/json_editor_0.5.0_macos.zip";
-                            html.AnchorElement anchorElement =
-                                html.AnchorElement(href: url);
-                            anchorElement.download = url;
-                            anchorElement.click();
-                          },
-                          child: Text(
-                            "WINDOWS - v0.5.0",
-                            style: TextStyle(
-                              decoration: TextDecoration.underline,
-                              color: Colors.blue.shade900,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            var url =
-                                "./release/0.5.0/json_editor_0.5.0_win.zip";
-                            html.AnchorElement anchorElement =
-                                html.AnchorElement(href: url);
-                            anchorElement.download = url;
-                            anchorElement.click();
-                          },
-                          child: Text(
-                            "macOS - v0.5.0",
-                            style: TextStyle(
-                              decoration: TextDecoration.underline,
-                              color: Colors.blue.shade900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                getDownload(_getDialogBgColor()),
               ],
             ),
           );
@@ -1170,6 +1167,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
     if (!todoOK) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Not supported: the files dont match')));
       setState(() {

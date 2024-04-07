@@ -59,6 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final XTypeGroup typeGroup =
       const XTypeGroup(label: 'json-files', extensions: <String>['json']);
   bool isEdited = false;
+  int newFileIndex = 0;
   bool searching = false;
   bool darkMode = true;
   String searchStr = "---**";
@@ -67,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<XFile>? files;
   List<TextEditingController>? tecLanguages;
   List<String>? filenames;
-  List<Map>? jsonFiles;
+  List<Map<String, dynamic>>? jsonFiles;
   List<bool>? expandedMainkeyContent;
 
   //
@@ -157,6 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _listView() {
+    List<TextEditingController>? tecLanguageNames = [];
     final countFilenames = files != null ? files!.length + 1 : 0;
     final countMainkeys = jsonFiles != null ? jsonFiles![0].length : 0;
     final width = MediaQuery.of(context).size.width / countFilenames;
@@ -176,6 +178,22 @@ class _MyHomePageState extends State<MyHomePage> {
               itemCount: countFilenames,
               itemExtent: width,
               itemBuilder: (context, index) {
+                if (index > 0) {
+                  var tec = TextEditingController();
+                  tec.text = filenames![index - 1];
+                  tec.addListener(() {
+                    if (tec.text != filenames![index - 1]) {
+                      setState(() {
+                        isEdited = true;
+                        filenames![index - 1] = tec.text;
+                        print(tec.text);
+// TODO - change name of file
+                      });
+                    }
+                  });
+                  tecLanguageNames.add(tec);
+                }
+
                 return Center(
                   child: index == 0
                       /* FIRST ITEM IS HEADER FOR KEYS */
@@ -191,15 +209,38 @@ class _MyHomePageState extends State<MyHomePage> {
                               const SizedBox(width: 10),
 
                               /* NEW LANG */
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState() {
-// TODO - implement add language *****************
-                                  }
+                              FutureBuilder(
+                                future: files![0].readAsString(),
+                                builder: (context, snapshot) {
+                                  return ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        tecLanguages!
+                                            .add(TextEditingController());
+
+                                        String fullpath = files![0].path;
+                                        String path = fullpath.substring(
+                                            0, fullpath.lastIndexOf("/"));
+                                        String fileName =
+                                            "nuevo$newFileIndex.json";
+                                        filenames!.add(fileName);
+                                        newFileIndex += 1;
+
+                                        XFile value = XFile("$path/$fileName");
+                                        files!.add(value);
+
+// TODO - make empty copy of the file
+                                        jsonFiles!
+                                            .add(json.decode(snapshot.data!));
+
+                                        isEdited = true;
+                                      });
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: _getBackgoundColor()),
+                                    child: const Text('+ lang'),
+                                  );
                                 },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: _getBackgoundColor()),
-                                child: const Text('+ lang'),
                               ),
                               const SizedBox(width: 10),
                             ],
@@ -219,13 +260,32 @@ class _MyHomePageState extends State<MyHomePage> {
 
                             // language name
                             Expanded(
-                              child: Text(
-                                filenames![index - 1],
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5),
+                                child: TextField(
+                                  decoration: InputDecoration.collapsed(
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    floatingLabelAlignment:
+                                        FloatingLabelAlignment.center,
+                                    hintText: filenames![index - 1],
+                                    hintStyle: const TextStyle(fontSize: 12),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  textAlignVertical: TextAlignVertical.center,
+                                  maxLines: 10,
+                                  controller: tecLanguageNames[index - 1],
+                                ),
                               ),
+
+                              // Text(
+                              //   filenames![index - 1],
+                              //   textAlign: TextAlign.center,
+                              //   style: const TextStyle(
+                              //       color: Colors.white,
+                              //       fontWeight: FontWeight.bold),
+                              // ),
                             ),
                           ],
                         ),
@@ -318,7 +378,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         const Spacer(),
                         Text(
-                          '(${index + 1})  $mainKey',
+                          //'(${index + 1})  $mainKey',
+                          mainKey,
                           style: const TextStyle(color: Colors.white),
                         ),
                         const Spacer(),
@@ -517,6 +578,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       searchStr = "---**";
                       files = null;
                       filenames = null;
+                      newFileIndex = 0;
                       jsonFiles = null;
                       expandedMainkeyContent = null;
                     });
@@ -687,12 +749,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                   child: TextField(
                                     maxLines: 1,
                                     controller: tecKey,
-                                    // onChanged: (value) {
-                                    //   print("changed: $value");
-                                    //   if (!value.isEmpty) {
-                                    //     setState(() {});
-                                    //   }
-                                    // },
                                     enabled: checkedIndex == null,
                                     textAlign: TextAlign.center,
                                     textAlignVertical: TextAlignVertical.center,
@@ -719,13 +775,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                   child: TextField(
                                     maxLines: 1,
                                     controller: tecSubkey,
-                                    // onChanged: (value) {
-                                    //   print("changed: $value");
-                                    //   if (!value.isEmpty) {
-                                    //     setState(() {});
-                                    //   }
-                                    // },
-
                                     textAlign: TextAlign.center,
                                     textAlignVertical: TextAlignVertical.center,
                                     autocorrect: false,
@@ -798,13 +847,21 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: const Text('Add'),
                                 onPressed: () async {
                                   setState(() {
-                                    var mainKey = tecKey.text;
-                                    var subkey = tecSubkey.text;
+                                    String mainKey = tecKey.text;
+                                    String subkey = tecSubkey.text;
                                     if (mainKey != "" && subkey != "") {
                                       if (checkedIndex == null) {
                                         // adding new group and string
-                                        print(
-                                            "TODO implement Add group / string");
+
+                                        for (var (int index, Map file)
+                                            in jsonFiles!.indexed) {
+                                          Map<String, dynamic> tmp = {};
+                                          Map<String, dynamic> tmp2 = {};
+                                          var lang = tecLanguages![index].text;
+                                          tmp.addAll({subkey: lang});
+                                          tmp2.addAll({mainKey: tmp});
+                                          file.addAll(tmp2);
+                                        }
                                       } else {
                                         // adding string in existing group
 

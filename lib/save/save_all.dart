@@ -9,7 +9,7 @@ Future<void> saveData({
 }) async {
   for (var (index, element) in jsonFiles.indexed) {
     var tosave = const JsonEncoder.withIndent("    ").convert(element);
-    File file = File("${files[index].path}.1.json");
+    File file = File(files[index].path);
     await file.writeAsString(tosave);
   }
 }

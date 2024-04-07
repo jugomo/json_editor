@@ -1,9 +1,14 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
+
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:yaml/yaml.dart';
 import 'package:json_editor/save/save.dart';
+
+import 'download/download.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,6 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final XTypeGroup typeGroup =
       const XTypeGroup(label: 'json-files', extensions: <String>['json']);
   bool isEdited = false;
+  int newFileIndex = 0;
   bool searching = false;
   bool darkMode = true;
   String searchStr = "---**";
@@ -62,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<XFile>? files;
   List<TextEditingController>? tecLanguages;
   List<String>? filenames;
-  List<Map>? jsonFiles;
+  List<Map<String, dynamic>>? jsonFiles;
   List<bool>? expandedMainkeyContent;
 
   //
@@ -131,11 +137,11 @@ class _MyHomePageState extends State<MyHomePage> {
               onTap: () {
                 _downloadDialog(ctx: context);
               },
-              child: const Row(
+              child: Row(
                 children: [
-                  Text("- v0.4.0 -", style: TextStyle(fontSize: 12)),
-                  SizedBox(width: 10),
-                  Icon(
+                  _getVersion(),
+                  const SizedBox(width: 10),
+                  const Icon(
                     Icons.download,
                     color: Colors.white,
                     size: 15,
@@ -152,6 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _listView() {
+    List<TextEditingController>? tecLanguageNames = [];
     final countFilenames = files != null ? files!.length + 1 : 0;
     final countMainkeys = jsonFiles != null ? jsonFiles![0].length : 0;
     final width = MediaQuery.of(context).size.width / countFilenames;
@@ -171,6 +178,22 @@ class _MyHomePageState extends State<MyHomePage> {
               itemCount: countFilenames,
               itemExtent: width,
               itemBuilder: (context, index) {
+                if (index > 0) {
+                  var tec = TextEditingController();
+                  tec.text = filenames![index - 1];
+                  tec.addListener(() {
+                    if (tec.text != filenames![index - 1]) {
+                      setState(() {
+                        isEdited = true;
+                        filenames![index - 1] = tec.text;
+                        print(tec.text);
+// TODO - change name of file
+                      });
+                    }
+                  });
+                  tecLanguageNames.add(tec);
+                }
+
                 return Center(
                   child: index == 0
                       /* FIRST ITEM IS HEADER FOR KEYS */
@@ -186,15 +209,38 @@ class _MyHomePageState extends State<MyHomePage> {
                               const SizedBox(width: 10),
 
                               /* NEW LANG */
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState() {
-                                    // TODO - implement add language *****************
-                                  }
+                              FutureBuilder(
+                                future: files![0].readAsString(),
+                                builder: (context, snapshot) {
+                                  return ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        tecLanguages!
+                                            .add(TextEditingController());
+
+                                        String fullpath = files![0].path;
+                                        String path = fullpath.substring(
+                                            0, fullpath.lastIndexOf("/"));
+                                        String fileName =
+                                            "nuevo$newFileIndex.json";
+                                        filenames!.add(fileName);
+                                        newFileIndex += 1;
+
+                                        XFile value = XFile("$path/$fileName");
+                                        files!.add(value);
+
+// TODO - make empty copy of the file
+                                        jsonFiles!
+                                            .add(json.decode(snapshot.data!));
+
+                                        isEdited = true;
+                                      });
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: _getBackgoundColor()),
+                                    child: const Text('+ lang'),
+                                  );
                                 },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: _getBackgoundColor()),
-                                child: const Text('+ lang'),
                               ),
                               const SizedBox(width: 10),
                             ],
@@ -214,13 +260,32 @@ class _MyHomePageState extends State<MyHomePage> {
 
                             // language name
                             Expanded(
-                              child: Text(
-                                filenames![index - 1],
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5),
+                                child: TextField(
+                                  decoration: InputDecoration.collapsed(
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    floatingLabelAlignment:
+                                        FloatingLabelAlignment.center,
+                                    hintText: filenames![index - 1],
+                                    hintStyle: const TextStyle(fontSize: 12),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  textAlignVertical: TextAlignVertical.center,
+                                  maxLines: 10,
+                                  controller: tecLanguageNames[index - 1],
+                                ),
                               ),
+
+                              // Text(
+                              //   filenames![index - 1],
+                              //   textAlign: TextAlign.center,
+                              //   style: const TextStyle(
+                              //       color: Colors.white,
+                              //       fontWeight: FontWeight.bold),
+                              // ),
                             ),
                           ],
                         ),
@@ -248,7 +313,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _mainKeyContent({required int index}) {
-    var mainKey = jsonFiles![0].keys.elementAt(index);
+    String mainKey = jsonFiles![0].keys.elementAt(index);
     List<Map>? childsFiles = [];
     for (int i = 0; i < files!.length; i++) {
       childsFiles.add(jsonFiles![i][mainKey]);
@@ -277,22 +342,44 @@ class _MyHomePageState extends State<MyHomePage> {
                   Expanded(
                     child: Row(
                       children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            tecKey.text = jsonFiles![0].keys.elementAt(index);
-                            _rowAddNewGroupOrString(
-                                ctx: context, checkedIndex: index);
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: _getBackgoundColor()),
-                          child: Text(
-                            "+ String",
-                            style: TextStyle(color: _getMainColor()),
-                          ),
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                tecKey.text =
+                                    jsonFiles![0].keys.elementAt(index);
+                                _rowAddNewGroupOrString(
+                                    ctx: context, checkedIndex: index);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.all(0),
+                                  backgroundColor: _getBackgoundColor()),
+                              child: Text(
+                                "Add",
+                                style: TextStyle(color: _getMainColor()),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            ElevatedButton(
+                              onPressed: () {
+                                tecKey.text =
+                                    jsonFiles![0].keys.elementAt(index);
+                                _deleteGroup(mainKey: mainKey);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.all(0),
+                                  backgroundColor: _getBackgoundColor()),
+                              child: const Text(
+                                "Delete",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
                         ),
                         const Spacer(),
                         Text(
-                          '(${index + 1})  $mainKey',
+                          //'(${index + 1})  $mainKey',
+                          mainKey,
                           style: const TextStyle(color: Colors.white),
                         ),
                         const Spacer(),
@@ -491,6 +578,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       searchStr = "---**";
                       files = null;
                       filenames = null;
+                      newFileIndex = 0;
                       jsonFiles = null;
                       expandedMainkeyContent = null;
                     });
@@ -593,22 +681,33 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Widget _getVersion() {
+    return FutureBuilder(
+        future: rootBundle.loadString("pubspec.yaml"),
+        builder: (context, snapshot) {
+          String ver = "0";
+          if (snapshot.hasData) {
+            ver = loadYaml(snapshot.data!)["version"];
+            ver = ver.substring(0, ver.lastIndexOf('+'));
+          }
+          return Text("- v$ver -", style: const TextStyle(fontSize: 12));
+        });
+  }
+
+  void _deleteGroup({required String mainKey}) {
+    setState(() {
+      for (var (index, _) in jsonFiles!.indexed) {
+        jsonFiles![index].remove(mainKey);
+      }
+      isEdited = true;
+    });
+  }
+
   void _rowAddNewGroupOrString({
     required BuildContext ctx,
     required int? checkedIndex,
   }) {
     _clearEditTexts();
-    // tecSubkey.text = "";
-    // tecV1.text = "";
-    // tecV2.text = "";
-    // tecV3.text = "";
-
-// TODO *********
-// List<Map>? childsFiles = [];
-//     for (int i = 0; i < files!.length; i++) {
-//       childsFiles.add(jsonFiles![i][mainKey]);
-//     }
-// TODO *********
 
     showModalBottomSheet<void>(
       context: ctx,
@@ -650,12 +749,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                   child: TextField(
                                     maxLines: 1,
                                     controller: tecKey,
-                                    // onChanged: (value) {
-                                    //   print("changed: $value");
-                                    //   if (!value.isEmpty) {
-                                    //     setState(() {});
-                                    //   }
-                                    // },
                                     enabled: checkedIndex == null,
                                     textAlign: TextAlign.center,
                                     textAlignVertical: TextAlignVertical.center,
@@ -682,13 +775,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                   child: TextField(
                                     maxLines: 1,
                                     controller: tecSubkey,
-                                    // onChanged: (value) {
-                                    //   print("changed: $value");
-                                    //   if (!value.isEmpty) {
-                                    //     setState(() {});
-                                    //   }
-                                    // },
-
                                     textAlign: TextAlign.center,
                                     textAlignVertical: TextAlignVertical.center,
                                     autocorrect: false,
@@ -761,26 +847,41 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: const Text('Add'),
                                 onPressed: () async {
                                   setState(() {
-                                    // if (tecKey.text != "" && tecSubkey.text != "") {
-                                    //   for ((index, item) in chil)
-                                    //   if (checkedIndex != null) {
-                                    //     var subkey = tecSubkey.text;
-                                    //     checkedIndex = null;
-                                    //     childs1![subkey] = tecV1.text;
-                                    //     childs2![subkey] = tecV2.text;
-                                    //     childs3![subkey] = tecV3.text;
-                                    //     addingNew = false;
-                                    //     isEdited = true;
-                                    //   } else {
-                                    //     json1![tecKey.text] = {tecSubkey.text: tecV1.text};
-                                    //     json2![tecKey.text] = {tecSubkey.text: tecV2.text};
-                                    //     json3![tecKey.text] = {tecSubkey.text: tecV3.text};
-                                    //     addingNew = false;
-                                    //     isEdited = true;
-                                    //   }
-                                    // } else {
-                                    //   print("TODO: show msg fill all data!");
-                                    // }
+                                    String mainKey = tecKey.text;
+                                    String subkey = tecSubkey.text;
+                                    if (mainKey != "" && subkey != "") {
+                                      if (checkedIndex == null) {
+                                        // adding new group and string
+
+                                        for (var (int index, Map file)
+                                            in jsonFiles!.indexed) {
+                                          Map<String, dynamic> tmp = {};
+                                          Map<String, dynamic> tmp2 = {};
+                                          var lang = tecLanguages![index].text;
+                                          tmp.addAll({subkey: lang});
+                                          tmp2.addAll({mainKey: tmp});
+                                          file.addAll(tmp2);
+                                        }
+                                      } else {
+                                        // adding string in existing group
+
+                                        for (var (int index, Map file)
+                                            in jsonFiles!.indexed) {
+                                          Map<String, dynamic> tmp = {};
+                                          var lang = tecLanguages![index].text;
+                                          tmp.addAll({subkey: lang});
+                                          file[mainKey].addAll(tmp);
+                                        }
+                                      }
+                                      isEdited = true;
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      Navigator.of(context).pop();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'please fill all data!')));
+                                    }
                                   });
                                 },
                               ),
@@ -819,7 +920,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }) {
     tecKey.text = selectedKey;
     for (int i = 0; i < childsFiles!.length; i++) {
-      tecLanguages![i].text = childsFiles![i][selectedKey];
+      tecLanguages![i].text = childsFiles[i][selectedKey];
     }
 
     showModalBottomSheet<void>(
@@ -991,21 +1092,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
 
                 /* CONTENT */
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    color: _getDialogBgColor(),
-                    padding: const EdgeInsets.all(10),
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("WINDOWS"),
-                        Text("macOS"),
-                      ],
-                    ),
-                  ),
-                ),
+                getDownload(_getDialogBgColor()),
               ],
             ),
           );
@@ -1137,6 +1224,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
     if (!todoOK) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Not supported: the files dont match')));
       setState(() {

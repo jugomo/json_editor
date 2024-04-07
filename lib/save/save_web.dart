@@ -15,7 +15,7 @@ Future<void> saveData({
     webfile.AnchorElement(
       href: webfile.Url.createObjectUrlFromBlob(blob1).toString(),
     )
-      ..setAttribute("download", "${files[index].name}.1.json")
+      ..setAttribute("download", files[index].name)
       ..click();
   }
 }

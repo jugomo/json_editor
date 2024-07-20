@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'json_editor',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         scrollbarTheme: const ScrollbarThemeData().copyWith(
@@ -196,9 +197,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
                 return Center(
                   child: index == 0
+
                       /* FIRST ITEM IS HEADER FOR KEYS */
                       ? Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

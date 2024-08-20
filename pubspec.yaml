@@ -11,9 +11,9 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.2
-  file_selector: ^1.0.2
+  # file_selector: ^1.0.2
   nice_json: ^1.1.1
-  file_picker: ^6.1.1
+  file_picker: ^8.1.2
   yaml: ^3.1.2
 
 dev_dependencies:

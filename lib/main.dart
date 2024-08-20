@@ -2,7 +2,8 @@
 
 import 'dart:convert';
 
-import 'package:file_selector/file_selector.dart';
+// import 'package:file_selector/file_selector.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
@@ -57,8 +58,6 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController tecSearch = TextEditingController();
   ScrollController scrollController = ScrollController();
 
-  final XTypeGroup typeGroup =
-      const XTypeGroup(label: 'json-files', extensions: <String>['json']);
   bool isEdited = false;
   int newFileIndex = 0;
   bool searching = false;
@@ -66,7 +65,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String searchStr = "---**";
 
   /* following vars depend on amount of files opened */
-  List<XFile>? files;
+  // List<XFile>? files;
+  List<dynamic>? files;
   List<TextEditingController>? tecLanguages;
   List<String>? filenames;
   List<Map<String, dynamic>>? jsonFiles;
@@ -227,14 +227,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                             "nuevo$newFileIndex.json";
                                         filenames!.add(fileName);
                                         newFileIndex += 1;
-
+/*
                                         XFile value = XFile("$path/$fileName");
                                         files!.add(value);
 
 // TODO - make empty copy of the file
                                         jsonFiles!
                                             .add(json.decode(snapshot.data!));
-
+*/
                                         isEdited = true;
                                       });
                                     },
@@ -532,16 +532,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ElevatedButton(
             style:
                 ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
-            onPressed: files == null
-                ? () async {
-                    files = await openFiles(
-                        confirmButtonText: "abrir todos",
-                        acceptedTypeGroups: <XTypeGroup>[typeGroup]);
-
-                    await loadData();
-                    setState(() {});
-                  }
-                : null,
+            onPressed: files == null ? openFiles : null,
             child: const Text('open'),
           ),
           const SizedBox(width: 10),
@@ -550,18 +541,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ElevatedButton(
             style:
                 ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
-            onPressed: isEdited
-                ? () async {
-                    saveData(
-                      files: files!,
-                      jsonFiles: jsonFiles!,
-                    ).then((value) {
-                      setState(() {
-                        isEdited = false;
-                      });
-                    });
-                  }
-                : null,
+            onPressed: isEdited ? saveFiles : null,
             child: const Text('save', style: TextStyle(color: Colors.orange)),
           ),
           const SizedBox(width: 10),
@@ -1163,12 +1143,51 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  void openFiles() async {
+    // final XTypeGroup typeGroup =
+    //    const XTypeGroup(label: 'json-files', extensions: <String>['json']);
+    // files = await openFiles(
+    //     confirmButtonText: "abrir todos",
+    //     acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+      allowMultiple: true,
+    );
+    files = result?.xFiles;
+
+    await loadData();
+    setState(() {});
+  }
+
+  void saveFiles() async {
+    // saveData(
+    //   files: files!,
+    //   jsonFiles: jsonFiles!,
+    // ).then((value) {
+    //   setState(() {
+    //     isEdited = false;
+    //   });
+    // });
+
+    String? result = await FilePicker.platform.saveFile(
+      dialogTitle: "hola",
+      fileName: "temporary.json",
+      bytes: Uint8List(4),
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    // print("RESULT: $result");
+  }
+
   Future<void> loadData() async {
     if (files == null || files!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
               'Not supported: you have to select at least one json file')));
       setState(() {
+// --------------------------
         files = null;
       });
       return;

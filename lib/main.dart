@@ -27,7 +27,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         scrollbarTheme: const ScrollbarThemeData().copyWith(
           thumbVisibility: WidgetStateProperty.all<bool>(true),
-          thumbColor: WidgetStateProperty.all(Colors.blue.shade700),
+          thumbColor: WidgetStatePropertyAll(Colors.blue),
+          trackColor: WidgetStatePropertyAll(Colors.white),
+          interactive: true,
         ),
         useMaterial3: true,
       ),
@@ -197,51 +199,52 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: index == 0
 
                       /* FIRST ITEM IS HEADER FOR KEYS */
-                      ? Padding(
-                          padding: const EdgeInsets.all(0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              /* NEW LANG */
-                              FutureBuilder(
-                                future: files![0].readAsString(),
-                                builder: (context, snapshot) {
-                                  return ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        tecLanguages!
-                                            .add(TextEditingController());
+                      ? const SizedBox.shrink()
+//                       Padding(
+//                           padding: const EdgeInsets.all(0),
+//                           child: Row(
+//                             mainAxisAlignment: MainAxisAlignment.center,
+//                             children: [
+//                               /* NEW LANG */
+//                               FutureBuilder(
+//                                 future: files![0].readAsString(),
+//                                 builder: (context, snapshot) {
+//                                   return ElevatedButton(
+//                                     onPressed: () {
+//                                       setState(() {
+//                                         tecLanguages!
+//                                             .add(TextEditingController());
 
-                                        String fullpath = files![0].path;
-                                        String path = fullpath.substring(
-                                            0, fullpath.lastIndexOf("/"));
-                                        String fileName =
-                                            "nuevo$newFileIndex.json";
-                                        filenames!.add(fileName);
-                                        newFileIndex += 1;
-/*
-                                        XFile value = XFile("$path/$fileName");
-                                        files!.add(value);
+//                                         String fullpath = files![0].path;
+//                                         String path = fullpath.substring(
+//                                             0, fullpath.lastIndexOf("/"));
+//                                         String fileName =
+//                                             "nuevo$newFileIndex.json";
+//                                         filenames!.add(fileName);
+//                                         newFileIndex += 1;
+// /*
+//                                         XFile value = XFile("$path/$fileName");
+//                                         files!.add(value);
 
-// TODO - make empty copy of the file
-                                        jsonFiles!
-                                            .add(json.decode(snapshot.data!));
-*/
-                                        isEdited = true;
-                                      });
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.all(0),
-                                        backgroundColor: _getBackgoundColor()),
-                                    child: const Text('+ lang',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        )
+// // TODO - make empty copy of the file
+//                                         jsonFiles!
+//                                             .add(json.decode(snapshot.data!));
+// */
+//                                         isEdited = true;
+//                                       });
+//                                     },
+//                                     style: ElevatedButton.styleFrom(
+//                                         padding: const EdgeInsets.all(0),
+//                                         backgroundColor: _getBackgoundColor()),
+//                                     child: const Text('+ lang',
+//                                         maxLines: 1,
+//                                         overflow: TextOverflow.ellipsis),
+//                                   );
+//                                 },
+//                               ),
+//                             ],
+//                           ),
+//                         )
 
                       /* OTHER ITEMS ARE HEADERS FOR EACH LANGUAGE */
                       : Row(
@@ -523,90 +526,122 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           /* OPEN */
-          ElevatedButton(
-            style:
-                ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
-            onPressed: files == null ? openFiles : null,
-            child: const Text('open'),
-          ),
-          const SizedBox(width: 10),
-
-          /* SAVE */
-          ElevatedButton(
-            style:
-                ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
-            onPressed: isEdited ? saveFiles : null,
+          Visibility(
+            visible: files == null,
             child: Row(
               children: [
-                const Text('save', style: TextStyle(color: Colors.orange)),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: _getBackgoundColor()),
+                  onPressed: files == null ? openFiles : null,
+                  child: const Text('open json'),
+                ),
                 const SizedBox(width: 10),
-
-                /* EDITED HINT */
-                if (isEdited)
-                  const Text("(*)", style: TextStyle(color: Colors.white)),
               ],
             ),
           ),
-          const SizedBox(width: 10),
+
+          /* SAVE */
+          Visibility(
+            visible: files != null,
+            child: Row(
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: _getBackgoundColor()),
+                  onPressed: isEdited ? saveFiles : null,
+                  child: Row(
+                    children: [
+                      const Text('save',
+                          style: TextStyle(color: Colors.orange)),
+                      const SizedBox(width: 10),
+
+                      /* EDITED HINT */
+                      if (isEdited)
+                        const Text("(*)",
+                            style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
+            ),
+          ),
 
           /* RESET */
-          ElevatedButton(
-            style:
-                ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
-            onPressed: files != null
-                ? () async {
-                    setState(() {
-                      tecLanguages = null;
-                      isEdited = false;
-                      searching = false;
-                      tecSearch.text = "";
-                      searchStr = "---**";
-                      files = null;
-                      filenames = null;
-                      newFileIndex = 0;
-                      jsonFiles = null;
-                      expandedMainkeyContent = null;
-                    });
-                  }
-                : null,
-            child: const Text('reset', style: TextStyle(color: Colors.red)),
+          Visibility(
+            visible: files != null,
+            child: Row(
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: _getBackgoundColor()),
+                  onPressed: files != null
+                      ? () async {
+                          setState(() {
+                            tecLanguages = null;
+                            isEdited = false;
+                            searching = false;
+                            tecSearch.text = "";
+                            searchStr = "---**";
+                            files = null;
+                            filenames = null;
+                            newFileIndex = 0;
+                            jsonFiles = null;
+                            expandedMainkeyContent = null;
+                          });
+                        }
+                      : null,
+                  child:
+                      const Text('reset', style: TextStyle(color: Colors.red)),
+                ),
+                const SizedBox(width: 10),
+              ],
+            ),
           ),
-          const SizedBox(width: 10),
 
           /* SEARCH */
-          ElevatedButton(
-            style:
-                ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
-            onPressed: files != null
-                ? () async {
-                    setState(() {
-                      searching = !searching;
-                      if (!searching) {
-                        tecSearch.text = "";
-                        searchStr = "---**";
-                        setState(() {
-                          for (var (index, _)
-                              in expandedMainkeyContent!.indexed) {
-                            expandedMainkeyContent![index] = false;
-                          }
-                        });
-                      } else {
-                        setState(() {
-                          for (var (index, _)
-                              in expandedMainkeyContent!.indexed) {
-                            expandedMainkeyContent![index] = true;
-                          }
-                        });
-                      }
-                    });
-                  }
-                : null,
-            child: const Text('search', style: TextStyle(color: Colors.blue)),
+          Visibility(
+            visible: files != null,
+            child: Row(
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: _getBackgoundColor()),
+                  onPressed: files != null
+                      ? () async {
+                          setState(() {
+                            searching = !searching;
+                            if (!searching) {
+                              tecSearch.text = "";
+                              searchStr = "---**";
+                              setState(() {
+                                for (var (index, _)
+                                    in expandedMainkeyContent!.indexed) {
+                                  expandedMainkeyContent![index] = false;
+                                }
+                              });
+                            } else {
+                              setState(() {
+                                for (var (index, _)
+                                    in expandedMainkeyContent!.indexed) {
+                                  expandedMainkeyContent![index] = true;
+                                }
+                              });
+                            }
+                          });
+                        }
+                      : null,
+                  child: const Text('search',
+                      style: TextStyle(color: Colors.blue)),
+                ),
+                const SizedBox(width: 10),
+              ],
+            ),
           ),
           if (searching)
             Row(
               children: [
-                const SizedBox(width: 10),
                 Container(
                   decoration: BoxDecoration(
                     border: Border.all(),
@@ -628,11 +663,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                   ),
                 ),
+                const SizedBox(width: 10),
               ],
             ),
 
           /* DARKMODE */
-          const SizedBox(width: 10),
           InkWell(
             onTap: () {
               setState(() {
@@ -646,14 +681,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 borderRadius: BorderRadius.circular(20),
                 color: _getBackgoundColor(),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.only(top: 0, bottom: 0, right: 15),
               child: Row(
                 children: [
-                  Checkbox(
-                    value: darkMode,
-                    onChanged: null,
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Checkbox(
+                      value: darkMode,
+                      onChanged: null,
+                    ),
                   ),
-                  Text("darkmode",
+                  Text("dark",
                       style: TextStyle(
                           color: darkMode ? Colors.white : Colors.black,
                           fontSize: 12)),

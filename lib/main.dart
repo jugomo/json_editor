@@ -2,7 +2,7 @@
 
 import 'dart:convert';
 
-// import 'package:file_selector/file_selector.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,8 +26,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         scrollbarTheme: const ScrollbarThemeData().copyWith(
-          thumbVisibility: MaterialStateProperty.all<bool>(true),
-          thumbColor: MaterialStateProperty.all(Colors.blue.shade700),
+          thumbVisibility: WidgetStateProperty.all<bool>(true),
+          thumbColor: WidgetStateProperty.all(Colors.blue.shade700),
         ),
         useMaterial3: true,
       ),
@@ -65,8 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String searchStr = "---**";
 
   /* following vars depend on amount of files opened */
-  // List<XFile>? files;
-  List<dynamic>? files;
+  List<XFile>? files;
   List<TextEditingController>? tecLanguages;
   List<String>? filenames;
   List<Map<String, dynamic>>? jsonFiles;
@@ -106,14 +105,13 @@ class _MyHomePageState extends State<MyHomePage> {
                           }
                         : null,
                     style: ButtonStyle(
-                        elevation: MaterialStateProperty.all(20),
+                        elevation: WidgetStateProperty.all(20),
                         backgroundColor:
-                            MaterialStateProperty.all(_getBackgoundColor()),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                    side: BorderSide(color: maincolorDark)))),
+                            WidgetStateProperty.all(_getBackgoundColor()),
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                side: BorderSide(color: maincolorDark)))),
                     child: Text('+', style: TextStyle(color: _getMainColor())),
                   ),
                 ],
@@ -204,12 +202,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              /* EDITED HINT */
-                              if (isEdited)
-                                const Text("(*)",
-                                    style: TextStyle(color: Colors.white)),
-                              const SizedBox(width: 10),
-
                               /* NEW LANG */
                               FutureBuilder(
                                 future: files![0].readAsString(),
@@ -239,12 +231,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                       });
                                     },
                                     style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.all(0),
                                         backgroundColor: _getBackgoundColor()),
-                                    child: const Text('+ lang'),
+                                    child: const Text('+ lang',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis),
                                   );
                                 },
                               ),
-                              const SizedBox(width: 10),
                             ],
                           ),
                         )
@@ -542,7 +536,16 @@ class _MyHomePageState extends State<MyHomePage> {
             style:
                 ElevatedButton.styleFrom(backgroundColor: _getBackgoundColor()),
             onPressed: isEdited ? saveFiles : null,
-            child: const Text('save', style: TextStyle(color: Colors.orange)),
+            child: Row(
+              children: [
+                const Text('save', style: TextStyle(color: Colors.orange)),
+                const SizedBox(width: 10),
+
+                /* EDITED HINT */
+                if (isEdited)
+                  const Text("(*)", style: TextStyle(color: Colors.white)),
+              ],
+            ),
           ),
           const SizedBox(width: 10),
 
@@ -695,198 +698,218 @@ class _MyHomePageState extends State<MyHomePage> {
       context: ctx,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return SizedBox(
-          width: double.infinity,
-          height: MediaQuery.of(ctx).size.height * 0.8,
-          child: Column(
-            children: [
-              /* TITLE */
-              Container(
-                color: _getMainColor(),
-                width: double.infinity,
-                height: 50,
-                alignment: Alignment.center,
-                child: Text(checkedIndex == null ? "ADD GROUP" : "ADD STRING",
-                    style: const TextStyle(color: Colors.white),
-                    textAlign: TextAlign.center),
-              ),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: SizedBox(
+              width: double.infinity,
+              // height: double.infinity,
+              // TODO: allow this only in no mobile targets
+              height: MediaQuery.of(ctx).size.height * 0.8,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  /* TITLE */
+                  Container(
+                    color: _getMainColor(),
+                    width: double.infinity,
+                    height: 50,
+                    alignment: Alignment.center,
+                    child: Text(
+                        checkedIndex == null ? "ADD GROUP" : "ADD STRING",
+                        style: const TextStyle(color: Colors.white),
+                        textAlign: TextAlign.center),
+                  ),
 
-              /* CONTENT */
-              Expanded(
-                child: Container(
-                  color: _getDialogBgColor(),
-                  padding: const EdgeInsets.all(10),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        /* KEYS */
-                        Column(
-                          children: [
-                            /* mainkey */
-                            Row(children: [
-                              const Text("Group key:"),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: SizedBox(
-                                  child: TextField(
-                                    maxLines: 1,
-                                    controller: tecKey,
-                                    enabled: checkedIndex == null,
-                                    textAlign: TextAlign.center,
-                                    textAlignVertical: TextAlignVertical.center,
-                                    autocorrect: false,
-                                    style: TextStyle(
-                                        fontStyle: checkedIndex != null
-                                            ? FontStyle.italic
-                                            : null,
-                                        fontWeight: checkedIndex != null
-                                            ? FontWeight.bold
-                                            : FontWeight.normal),
-                                  ),
-                                ),
-                              ),
-                            ]),
-                            const SizedBox(height: 20),
-
-                            /* secondary key */
-                            Row(children: [
-                              const Text("String key:"),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: SizedBox(
-                                  child: TextField(
-                                    maxLines: 1,
-                                    controller: tecSubkey,
-                                    textAlign: TextAlign.center,
-                                    textAlignVertical: TextAlignVertical.center,
-                                    autocorrect: false,
-                                    style: TextStyle(
-                                        fontStyle: checkedIndex != null
-                                            ? FontStyle.italic
-                                            : null,
-                                        fontWeight: checkedIndex != null
-                                            ? FontWeight.bold
-                                            : FontWeight.normal),
-                                  ),
-                                ),
-                              ),
-                            ]),
-                          ],
-                        ),
-                        const SizedBox(height: 30),
-
-                        /* ALL VALUES TO ADD */
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: filenames!.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Container(
-                                height: 160,
-                                width: double.infinity,
-                                padding: const EdgeInsets.only(
-                                    bottom: 20, right: 20),
-                                child: Row(
-                                  children: [
-                                    Text(filenames![index]),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: SizedBox(
-                                        height: double.infinity,
-                                        child: TextField(
-                                          decoration: InputDecoration.collapsed(
-                                            border: const OutlineInputBorder(
-                                              borderSide: BorderSide(width: 1),
-                                            ),
-                                            hintText: filenames![index],
-                                            hintStyle:
-                                                const TextStyle(fontSize: 12),
-                                          ).copyWith(
-                                            contentPadding:
-                                                const EdgeInsets.all(5),
-                                          ),
-                                          maxLines: 10,
-                                          controller: tecLanguages![index],
-                                        ),
+                  /* CONTENT */
+                  Expanded(
+                    child: Container(
+                      color: _getDialogBgColor(),
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          /* KEYS */
+                          Column(
+                            children: [
+                              /* mainkey */
+                              Row(
+                                children: [
+                                  const Text("Group key:"),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: SizedBox(
+                                      child: TextField(
+                                        maxLines: 1,
+                                        controller: tecKey,
+                                        enabled: checkedIndex == null,
+                                        textAlign: TextAlign.center,
+                                        textAlignVertical:
+                                            TextAlignVertical.center,
+                                        autocorrect: false,
+                                        style: TextStyle(
+                                            fontStyle: checkedIndex != null
+                                                ? FontStyle.italic
+                                                : null,
+                                            fontWeight: checkedIndex != null
+                                                ? FontWeight.bold
+                                                : FontWeight.normal),
                                       ),
                                     ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+
+                              /* secondary key */
+                              Row(children: [
+                                const Text("String key:"),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: SizedBox(
+                                    child: TextField(
+                                      maxLines: 1,
+                                      controller: tecSubkey,
+                                      textAlign: TextAlign.center,
+                                      textAlignVertical:
+                                          TextAlignVertical.center,
+                                      autocorrect: false,
+                                      style: TextStyle(
+                                          fontStyle: checkedIndex != null
+                                              ? FontStyle.italic
+                                              : null,
+                                          fontWeight: checkedIndex != null
+                                              ? FontWeight.bold
+                                              : FontWeight.normal),
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-
-                        /* BUTTONS ADD AND CANCEL */
-                        SizedBox(
-                          width: double.infinity,
-                          height: 30,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              /* ADD BUTTON */
-                              ElevatedButton(
-                                child: const Text('Add'),
-                                onPressed: () async {
-                                  setState(() {
-                                    String mainKey = tecKey.text;
-                                    String subkey = tecSubkey.text;
-                                    if (mainKey != "" && subkey != "") {
-                                      if (checkedIndex == null) {
-                                        // adding new group and string
-
-                                        for (var (int index, Map file)
-                                            in jsonFiles!.indexed) {
-                                          Map<String, dynamic> tmp = {};
-                                          Map<String, dynamic> tmp2 = {};
-                                          var lang = tecLanguages![index].text;
-                                          tmp.addAll({subkey: lang});
-                                          tmp2.addAll({mainKey: tmp});
-                                          file.addAll(tmp2);
-                                        }
-                                      } else {
-                                        // adding string in existing group
-
-                                        for (var (int index, Map file)
-                                            in jsonFiles!.indexed) {
-                                          Map<String, dynamic> tmp = {};
-                                          var lang = tecLanguages![index].text;
-                                          tmp.addAll({subkey: lang});
-                                          file[mainKey].addAll(tmp);
-                                        }
-                                      }
-                                      isEdited = true;
-                                      Navigator.of(context).pop();
-                                    } else {
-                                      Navigator.of(context).pop();
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'please fill all data!')));
-                                    }
-                                  });
-                                },
-                              ),
-                              const SizedBox(width: 10),
-
-                              /* CLOSE BUTTON */
-                              ElevatedButton(
-                                child: const Text('close'),
-                                onPressed: () async {
-                                  setState(() {
-                                    Navigator.pop(context);
-                                  });
-                                },
-                              ),
+                              ]),
                             ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 30),
+
+                          /* ALL VALUES TO ADD */
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: filenames!.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return Container(
+                                  height: 160,
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.only(
+                                      bottom: 20, right: 20),
+                                  child: Row(
+                                    children: [
+                                      Text(filenames![index]),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: SizedBox(
+                                          height: double.infinity,
+                                          child: TextField(
+                                            decoration:
+                                                InputDecoration.collapsed(
+                                              border: const OutlineInputBorder(
+                                                borderSide:
+                                                    BorderSide(width: 1),
+                                              ),
+                                              hintText: filenames![index],
+                                              hintStyle:
+                                                  const TextStyle(fontSize: 12),
+                                            ).copyWith(
+                                              contentPadding:
+                                                  const EdgeInsets.all(5),
+                                            ),
+                                            maxLines: 10,
+                                            controller: tecLanguages![index],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          /* BUTTONS ADD AND CANCEL */
+                          SizedBox(
+                            width: double.infinity,
+                            height: 30,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                /* ADD BUTTON */
+                                ElevatedButton(
+                                  child: const Text('Add'),
+                                  onPressed: () async {
+                                    setState(() {
+                                      String mainKey = tecKey.text;
+                                      String subkey = tecSubkey.text;
+                                      if (mainKey != "" && subkey != "") {
+                                        if (checkedIndex == null) {
+                                          // adding new group and string
+
+                                          for (var (int index, Map file)
+                                              in jsonFiles!.indexed) {
+                                            Map<String, dynamic> tmp = {};
+                                            Map<String, dynamic> tmp2 = {};
+                                            var lang =
+                                                tecLanguages![index].text;
+                                            tmp.addAll({subkey: lang});
+                                            tmp2.addAll({mainKey: tmp});
+                                            file.addAll(tmp2);
+                                          }
+                                        } else {
+                                          // adding string in existing group
+
+                                          for (var (int index, Map file)
+                                              in jsonFiles!.indexed) {
+                                            Map<String, dynamic> tmp = {};
+                                            var lang =
+                                                tecLanguages![index].text;
+                                            tmp.addAll({subkey: lang});
+                                            file[mainKey].addAll(tmp);
+                                          }
+                                        }
+                                        isEdited = true;
+                                        Navigator.of(context).pop();
+                                      } else {
+                                        Navigator.of(context).pop();
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                                content: Text(
+                                                    'please fill all data!')));
+                                      }
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 10),
+
+                                /* CLOSE BUTTON */
+                                ElevatedButton(
+                                  child: const Text('close'),
+                                  onPressed: () async {
+                                    setState(() {
+                                      Navigator.pop(context);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
@@ -1171,14 +1194,34 @@ class _MyHomePageState extends State<MyHomePage> {
     //   });
     // });
 
-    String? result = await FilePicker.platform.saveFile(
-      dialogTitle: "hola",
-      fileName: "temporary.json",
-      bytes: Uint8List(4),
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-    // print("RESULT: $result");
+    for (var (index, element) in jsonFiles!.indexed) {
+      XFile file = files![index];
+      String name = file.path.substring(
+          file.path.lastIndexOf('/') + 1, file.path.lastIndexOf('.'));
+      name = "$name-1.json";
+      var tosave = const JsonEncoder.withIndent("    ").convert(element);
+      Uint8List bytes = Uint8List.fromList(utf8.encode(tosave));
+
+      String? result = await FilePicker.platform.saveFile(
+        dialogTitle: "hola",
+        fileName: name,
+        bytes: bytes,
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+      print("RESULT: $result");
+
+      // ------------------------------------------
+      // String selectedFilePath = file.path;
+      // File fileReplace = File(selectedFilePath);
+      // await fileReplace.writeAsBytes(bytes);
+      // print('File replaced successfully!');
+      // ------------------------------------------
+    }
+
+    setState(() {
+      isEdited = false;
+    });
   }
 
   Future<void> loadData() async {

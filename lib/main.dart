@@ -27,8 +27,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         scrollbarTheme: const ScrollbarThemeData().copyWith(
           thumbVisibility: WidgetStateProperty.all<bool>(true),
-          thumbColor: WidgetStatePropertyAll(Colors.blue),
-          trackColor: WidgetStatePropertyAll(Colors.white),
+          thumbColor: const WidgetStatePropertyAll(Colors.blue),
+          trackColor: const WidgetStatePropertyAll(Colors.white),
           interactive: true,
         ),
         useMaterial3: true,
@@ -214,7 +214,7 @@ class _MyHomePageState extends State<MyHomePage> {
 //                                       setState(() {
 //                                         tecLanguages!
 //                                             .add(TextEditingController());
-
+//
 //                                         String fullpath = files![0].path;
 //                                         String path = fullpath.substring(
 //                                             0, fullpath.lastIndexOf("/"));
@@ -225,7 +225,7 @@ class _MyHomePageState extends State<MyHomePage> {
 // /*
 //                                         XFile value = XFile("$path/$fileName");
 //                                         files!.add(value);
-
+//
 // // TODO - make empty copy of the file
 //                                         jsonFiles!
 //                                             .add(json.decode(snapshot.data!));
@@ -296,14 +296,18 @@ class _MyHomePageState extends State<MyHomePage> {
         /* CONTENT OF FILES */
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(8),
-            child: ListView.builder(
-              controller: scrollController,
-              itemCount: countMainkeys,
-              itemBuilder: (context, index) {
-                expandedMainkeyContent!.add(false);
-                return _mainKeyContent(index: index);
-              },
+            padding: const EdgeInsets.all(2),
+            child: RawScrollbar(
+              thumbColor: maincolorLight.withAlpha(122),
+              thumbVisibility: true,
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: countMainkeys,
+                itemBuilder: (context, index) {
+                  expandedMainkeyContent!.add(false);
+                  return _mainKeyContent(index: index);
+                },
+              ),
             ),
           ),
         ),
@@ -319,9 +323,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     var childCount = childsFiles[0].length;
     final width = MediaQuery.of(context).size.width / (childsFiles.length + 1);
+    const rowHeight = 70.0;
 
     return Container(
-      padding: const EdgeInsets.only(bottom: 20, right: 20),
+      padding: const EdgeInsets.only(bottom: 20, right: 0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -353,10 +358,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(0),
                                   backgroundColor: _getBackgoundColor()),
-                              child: Text(
-                                "Add",
-                                style: TextStyle(color: _getMainColor()),
-                              ),
+                              child: Icon(Icons.add, color: _getMainColor()),
                             ),
                             const SizedBox(width: 5),
                             ElevatedButton(
@@ -368,10 +370,8 @@ class _MyHomePageState extends State<MyHomePage> {
                               style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.all(0),
                                   backgroundColor: _getBackgoundColor()),
-                              child: const Text(
-                                "Delete",
-                                style: TextStyle(color: Colors.red),
-                              ),
+                              child:
+                                  const Icon(Icons.delete, color: Colors.red),
                             ),
                           ],
                         ),
@@ -396,8 +396,9 @@ class _MyHomePageState extends State<MyHomePage> {
           /* CONTENT OF THE MAINKEY GROUP */
           expandedMainkeyContent![index]
               ? SizedBox(
-                  height: childCount * 40 + childCount * 2.5 * 2,
+                  height: childCount * rowHeight + childCount * 2.5 * 2,
                   child: ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: childCount,
                     itemBuilder: (context, index) {
                       String key = childsFiles[0].keys.elementAt(index);
@@ -408,87 +409,108 @@ class _MyHomePageState extends State<MyHomePage> {
                         } catch (_) {}
                       }
 
-                      return InkWell(
-                        onTap: () {
-                          _editItemDialog(
-                            ctx: context,
-                            index: index,
-                            mainKey: mainKey,
-                            selectedKey: key,
-                            childsFiles: childsFiles,
-                          );
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 2.5),
-                          color: _getRowColor(key: key, values: str),
-                          height: 40,
-                          child: Row(
-                            children: [
-                              Container(
-                                color: _getMainColor().withAlpha(200),
-                                width: width,
-                                height: double.infinity,
-                                child: Row(
-                                  children: [
-                                    /* REMOVE ENTRY BUTTON */
-                                    IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          isEdited = true;
-                                          _deleteItem(
-                                              mainKey: mainKey,
-                                              selectedKey: key);
-                                        });
-                                      },
-                                      icon: const Icon(Icons.delete),
-                                    ),
-
-                                    /* STRING KEY */
-                                    Expanded(
-                                      child: Text(
-                                        key,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontStyle: FontStyle.italic,
-                                          fontWeight: FontWeight.bold,
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 2.5),
+                        color: _getRowColor(key: key, values: str),
+                        height: rowHeight,
+                        child: Row(
+                          children: [
+                            /* ROW ACTIONS AND KEY TITLE */
+                            Container(
+                              color: _getMainColor().withAlpha(200),
+                              width: width,
+                              height: double.infinity,
+                              child: Column(
+                                children: [
+                                  /* ROW ACTIONS */
+                                  SizedBox(
+                                    height: 20,
+                                    child: Row(
+                                      children: [
+                                        /* EDIT ENTRY */
+                                        IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              isEdited = true;
+                                              _editItemDialog(
+                                                ctx: context,
+                                                index: index,
+                                                mainKey: mainKey,
+                                                selectedKey: key,
+                                                childsFiles: childsFiles,
+                                              );
+                                            });
+                                          },
+                                          iconSize: 20,
+                                          icon: Icon(Icons.edit,
+                                              color: _getMainColor()),
                                         ),
+
+                                        /* REMOVE ENTRY BUTTON */
+                                        IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              isEdited = true;
+                                              _deleteItem(
+                                                  mainKey: mainKey,
+                                                  selectedKey: key);
+                                            });
+                                          },
+                                          iconSize: 20,
+                                          icon: const Icon(Icons.delete,
+                                              color: Colors.red),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+
+                                  /* KEY TITLE */
+                                  Expanded(
+                                    child: Text(
+                                      key,
+                                      maxLines: 2,
+                                      textAlign: TextAlign.start,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontStyle: FontStyle.italic,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
+                            ),
 
-                              /* LIST FOR FILES VALUES */
-                              Expanded(
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: str.length,
-                                  itemBuilder: (context, index) {
-                                    return SizedBox(
-                                      width: width,
-                                      height: 40,
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                              color: darkMode
-                                                  ? Colors.black
-                                                  : Colors.white,
-                                              width: 5),
-                                          Expanded(
-                                              child: Text(
-                                            str[index],
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          )),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
+                            /* LIST FOR FILES VALUES */
+                            Expanded(
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: str.length,
+                                itemBuilder: (context, index) {
+                                  return SizedBox(
+                                    width: width,
+                                    height: 40,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                            color: darkMode
+                                                ? Colors.black
+                                                : Colors.white,
+                                            width: 5),
+                                        Expanded(
+                                            child: Text(
+                                          str[index],
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        )),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
                     },
